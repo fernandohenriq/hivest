@@ -49,3 +49,8 @@ export interface ModuleOptions {
   providers?: { key?: string; useClass: any }[];
   imports?: AppModule[];
 }
+
+export interface ClassProvider<T> {
+  provide: string | Function;
+  useClass: new (...args: any[]) => T;
+}

@@ -5,5 +5,5 @@ export * from './app-interfaces';
 export * from './app-module';
 
 if (process.env.NODE_ENV === 'development') {
-  require('./exemple');
+  require('./example');
 }

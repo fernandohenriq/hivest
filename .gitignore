@@ -1,6 +1,5 @@
 # Folders
 node_modules/
-node_modules_old/
 dist/
 build/
 uploads/
@@ -11,8 +10,8 @@ uploads/
 *.sqlite
 
 # Files
-package-lock.json
-*/package-lock.json
+yarn.lock
+*/yarn.lock
 
 # Others
 *.hide.*

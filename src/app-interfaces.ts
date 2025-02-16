@@ -34,12 +34,12 @@ export interface HttpRes {
 export type HttpErr = any;
 export type HttpNext = (err?: any) => void;
 
-export interface HttpContext {
+export type HttpContext = {
   req: HttpReq;
   res: HttpRes;
   next: HttpNext;
   err?: HttpErr;
-}
+};
 
 export type HttpHandler = (ctx: HttpContext) => any;
 export type HttpMiddlewareOptions = { errorHandler?: boolean };

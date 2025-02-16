@@ -2,8 +2,8 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
-    "rootDir": "./",
-    "outDir": "./dist",
+    "rootDir": "./src",
+    "outDir": "./build",
     "allowJs": true,
     "strict": true,
     "esModuleInterop": true,
@@ -13,8 +13,7 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "sourceMap": true,
-    "moduleResolution": "node",
-    "types": ["vitest/globals"]
+    "moduleResolution": "node"
   },
   "include": ["./src/**/*", "package.json"],
   "exclude": ["node_modules", "dist"]

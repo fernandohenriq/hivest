@@ -1,5 +1,3 @@
-import 'reflect-metadata';
-
 import { Controller, HttpGet, HttpMiddleware, HttpPost, Inject, Provider } from './app-decorators';
 import { HttpContext } from './app-interfaces';
 import { AppModule } from './app-module';

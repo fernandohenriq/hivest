@@ -46,7 +46,6 @@ interface ModuleOptions {
   path?: string;
   providers?: { key?: string; useClass: any }[];
   imports?: AppModule[];
-  controllers?: any[];
 }
 
 // Decorators
@@ -111,14 +110,11 @@ class AppModule {
     if (visited.has(module)) return;
     visited.add(module);
 
-    // Register providers and controllers
-    const allProviders = [
-      ...(module.options.providers || []),
-      ...(module.options.controllers?.map((controller) => ({ useClass: controller })) || []),
-    ];
+    // Register providers (now including controllers)
+    const allProviders = module.options.providers || [];
 
     allProviders.forEach((provider: { key?: string; useClass: any }) => {
-      const token = provider.key || provider.useClass.name;
+      const token = provider.key || provider.useClass;
       this.container.register(token, { useClass: provider.useClass });
     });
 
@@ -148,8 +144,9 @@ class AppModule {
 
     // Collect all controllers
     const controllers = [
-      ...(this.options.controllers || []),
-      ...(this.options.imports?.flatMap((m) => m.options.controllers || []) || []),
+      ...(this.options.providers?.map((p) => p.useClass) || []),
+      ...(this.options.imports?.flatMap((m) => m.options.providers?.map((p) => p.useClass) || []) ||
+        []),
     ];
 
     // Initialize Express
@@ -275,26 +272,27 @@ class UserController {
   }
 }
 
-class UserModule extends AppModule {
+const userModule = new (class UserModule extends AppModule {
   constructor() {
     super({
       path: '/aaa',
-      controllers: [UserController],
-      providers: [{ key: 'UserService', useClass: UserService }],
+      providers: [{ key: 'UserService', useClass: UserService }, { useClass: UserController }],
     });
   }
-}
+})();
 
-// Update main AppModule to import UserModule
-const appModule = new AppModule({
-  path: '/api',
-  imports: [new UserModule()],
-  providers: [{ key: 'LoggerMiddleware', useClass: LoggerMiddleware }],
-  controllers: [],
-});
+const mainModule = new (class MainModule extends AppModule {
+  constructor() {
+    super({
+      path: '/api',
+      imports: [userModule],
+      providers: [{ key: 'LoggerMiddleware', useClass: LoggerMiddleware }],
+    });
+  }
+})();
 
 // Run tests after server starts
-appModule.start(3000, () => {
+mainModule.start(3000, () => {
   console.log('Server running on port 3000');
   setTimeout(async () => {
     const baseUrl = 'http://localhost:3000/api/users';

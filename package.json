@@ -1,7 +1,9 @@
 {
-  "name": "rules-shop-api",
-  "version": "1.0.0",
-  "main": "src/index.js",
+  "name": "hivest",
+  "description": "Featherweight modular HTTP framework for TypeScript",
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "author": "fernandohenriqsilva@gmail.com",
   "license": "MIT",
   "private": true,
@@ -39,5 +41,14 @@
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.6.2",
     "vitest": "^2.1.8"
-  }
+  },
+  "keywords": [
+    "decorators",
+    "dependency injection",
+    "typescript",
+    "module system",
+    "ioc container",
+    "lightweight",
+    "minimalist"
+  ]
 }

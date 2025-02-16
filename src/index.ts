@@ -44,7 +44,7 @@ type HttpMiddlewareOptions = { errorHandler?: boolean };
 
 interface ModuleOptions {
   path?: string;
-  providers?: { key: string; useClass: any }[];
+  providers?: { key?: string; useClass: any }[];
   imports?: AppModule[];
   controllers?: any[];
 }
@@ -111,9 +111,15 @@ class AppModule {
     if (visited.has(module)) return;
     visited.add(module);
 
-    // Register providers
-    module.options.providers?.forEach((provider) => {
-      this.container.register(provider.key, { useClass: provider.useClass });
+    // Register providers and controllers
+    const allProviders = [
+      ...(module.options.providers || []),
+      ...(module.options.controllers?.map((controller) => ({ useClass: controller })) || []),
+    ];
+
+    allProviders.forEach((provider: { key?: string; useClass: any }) => {
+      const token = provider.key || provider.useClass.name;
+      this.container.register(token, { useClass: provider.useClass });
     });
 
     // Process imported modules
@@ -287,50 +293,47 @@ const appModule = new AppModule({
   controllers: [],
 });
 
-// Test suite
-async function runTests() {
-  const baseUrl = 'http://localhost:3000/api/users';
-
-  // Users test
-  (async function userTests() {
-    // Test 1: Get all users
-    try {
-      const getResponse = await fetch(baseUrl);
-      if (!getResponse.ok) throw new Error(`HTTP error! Status: ${getResponse.status}`);
-      const users = await getResponse.json();
-      console.log('✅ GET /users success:', users);
-    } catch (error) {
-      console.error('❌ GET /users failed:', error);
-    }
-
-    // Test 2: Create new user
-    try {
-      const postResponse = await fetch(baseUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: 'Test User' }),
-      });
-      if (!postResponse.ok) throw new Error(`HTTP error! Status: ${postResponse.status}`);
-      const newUser = await postResponse.json();
-      console.log('✅ POST /users success:', newUser);
-    } catch (error) {
-      console.error('❌ POST /users failed:', error);
-    }
-
-    // Test 3: Verify new user exists
-    try {
-      const verifyResponse = await fetch(baseUrl);
-      if (!verifyResponse.ok) throw new Error(`HTTP error! Status: ${verifyResponse.status}`);
-      const updatedUsers = await verifyResponse.json();
-      console.log('✅ User count after creation:', updatedUsers.length);
-    } catch (error) {
-      console.error('❌ Verify user count failed:', error);
-    }
-  })();
-}
-
 // Run tests after server starts
 appModule.start(3000, () => {
   console.log('Server running on port 3000');
-  setTimeout(runTests, 1000); // Wait 1 second for server to start
+  setTimeout(async () => {
+    const baseUrl = 'http://localhost:3000/api/users';
+
+    // Users test
+    (async function userTests() {
+      // Test 1: Get all users
+      try {
+        const getResponse = await fetch(baseUrl);
+        if (!getResponse.ok) throw new Error(`HTTP error! Status: ${getResponse.status}`);
+        const users = await getResponse.json();
+        console.log('✅ GET /users success:', users);
+      } catch (error) {
+        console.error('❌ GET /users failed:', error);
+      }
+
+      // Test 2: Create new user
+      try {
+        const postResponse = await fetch(baseUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: 'Test User' }),
+        });
+        if (!postResponse.ok) throw new Error(`HTTP error! Status: ${postResponse.status}`);
+        const newUser = await postResponse.json();
+        console.log('✅ POST /users success:', newUser);
+      } catch (error) {
+        console.error('❌ POST /users failed:', error);
+      }
+
+      // Test 3: Verify new user exists
+      try {
+        const verifyResponse = await fetch(baseUrl);
+        if (!verifyResponse.ok) throw new Error(`HTTP error! Status: ${verifyResponse.status}`);
+        const updatedUsers = await verifyResponse.json();
+        console.log('✅ User count after creation:', updatedUsers.length);
+      } catch (error) {
+        console.error('❌ Verify user count failed:', error);
+      }
+    })();
+  }, 1000); // Wait 1 second for server to start
 });

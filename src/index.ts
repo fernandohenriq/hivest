@@ -12,6 +12,16 @@ interface HttpReq {
   query: any;
   method: string;
   url: string;
+  originalUrl: string;
+  baseUrl: string;
+  path: string;
+  protocol: string;
+  secure: boolean;
+  subdomains: string[];
+  ip: string;
+  ips: string[];
+  hostname: string;
+  [key: string]: any;
 }
 
 interface HttpRes {
@@ -92,7 +102,10 @@ class AppModule {
   private isInitialized = false;
   private container: DependencyContainer = container.createChildContainer();
 
-  constructor(private options: ModuleOptions) {}
+  constructor(private options: ModuleOptions) {
+    const app = express();
+    app.use(express.json());
+  }
 
   private async initModules(module: AppModule, visited = new Set<AppModule>()) {
     if (visited.has(module)) return;
@@ -205,7 +218,24 @@ class AppModule {
   }
 }
 
-// Move service ABOVE controller in the file
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+@Provider()
+class LoggerMiddleware {
+  @HttpMiddleware()
+  httpEntry({ req, res, next }: HttpContext) {
+    const timestamp = new Date().toLocaleString();
+    const method = req.method;
+    const url = req.originalUrl;
+    console.info(
+      `\x1b[42m[LOGGER]\x1b[0m \x1b[36m[${timestamp}]\x1b[0m \x1b[33m${method}\x1b[0m ${url}`,
+    );
+    next();
+  }
+}
+
 @Provider()
 class UserService {
   private users = [{ id: 1, name: 'John' }];
@@ -239,10 +269,68 @@ class UserController {
   }
 }
 
+class UserModule extends AppModule {
+  constructor() {
+    super({
+      path: '/aaa',
+      controllers: [UserController],
+      providers: [{ key: 'UserService', useClass: UserService }],
+    });
+  }
+}
+
+// Update main AppModule to import UserModule
 const appModule = new AppModule({
   path: '/api',
-  controllers: [UserController],
-  providers: [{ key: 'UserService', useClass: UserService }],
+  imports: [new UserModule()],
+  providers: [{ key: 'LoggerMiddleware', useClass: LoggerMiddleware }],
+  controllers: [],
 });
 
-appModule.start(3000, () => console.log('Server running on port 3000'));
+// Test suite
+async function runTests() {
+  const baseUrl = 'http://localhost:3000/api/users';
+
+  // Users test
+  (async function userTests() {
+    // Test 1: Get all users
+    try {
+      const getResponse = await fetch(baseUrl);
+      if (!getResponse.ok) throw new Error(`HTTP error! Status: ${getResponse.status}`);
+      const users = await getResponse.json();
+      console.log('✅ GET /users success:', users);
+    } catch (error) {
+      console.error('❌ GET /users failed:', error);
+    }
+
+    // Test 2: Create new user
+    try {
+      const postResponse = await fetch(baseUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Test User' }),
+      });
+      if (!postResponse.ok) throw new Error(`HTTP error! Status: ${postResponse.status}`);
+      const newUser = await postResponse.json();
+      console.log('✅ POST /users success:', newUser);
+    } catch (error) {
+      console.error('❌ POST /users failed:', error);
+    }
+
+    // Test 3: Verify new user exists
+    try {
+      const verifyResponse = await fetch(baseUrl);
+      if (!verifyResponse.ok) throw new Error(`HTTP error! Status: ${verifyResponse.status}`);
+      const updatedUsers = await verifyResponse.json();
+      console.log('✅ User count after creation:', updatedUsers.length);
+    } catch (error) {
+      console.error('❌ Verify user count failed:', error);
+    }
+  })();
+}
+
+// Run tests after server starts
+appModule.start(3000, () => {
+  console.log('Server running on port 3000');
+  setTimeout(runTests, 1000); // Wait 1 second for server to start
+});

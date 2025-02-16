@@ -13,7 +13,6 @@
   },
   "dependencies": {
     "axios": "^1.7.7",
-    "bananest": "^0.5.3",
     "bcryptjs": "^2.4.3",
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
@@ -22,6 +21,7 @@
     "mongoose": "^8.6.3",
     "mongoose-paginate-v2": "^1.8.5",
     "reflect-metadata": "^0.2.2",
+    "tsyringe": "^4.8.0",
     "winston": "^3.15.0",
     "zod": "^3.23.8"
   },

@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "module": "commonjs",
+    "module": "ESNext",
     "rootDir": "./",
     "outDir": "./dist",
     "allowJs": true,
@@ -12,6 +12,8 @@
     "forceConsistentCasingInFileNames": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
+    "sourceMap": true,
+    "moduleResolution": "node",
     "types": ["vitest/globals"]
   },
   "include": ["./src/**/*", "package.json"],

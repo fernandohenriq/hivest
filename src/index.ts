@@ -154,59 +154,78 @@ class AppModule {
     this.expressApp.use(express.json());
 
     // Process controllers
-    controllers.forEach((ControllerClass) => {
-      const controllerPath = Reflect.getMetadata('controller:path', ControllerClass);
-      const routes = Reflect.getMetadata('controller:routes', ControllerClass) || [];
-      const middlewares = Reflect.getMetadata('controller:middlewares', ControllerClass) || [];
+    const processModule = (module: AppModule, parentPath: string = ''): any[] => {
+      const currentModulePath = [parentPath, module.options.path]
+        .filter((p) => p && p !== '/')
+        .join('/')
+        .replace(/\/+/g, '/');
 
-      const router = express.Router();
-      const controllerInstance = this.container.resolve(ControllerClass);
+      const controllers = [
+        ...(module.options.providers?.map((p) => p.useClass) || []),
+        ...(module.options.imports?.flatMap((m) => processModule(m, currentModulePath)) || []),
+      ];
 
-      // Apply middlewares
-      middlewares.forEach(
-        ({
-          path,
-          handler,
-          options,
-        }: {
-          path: string;
-          handler: HttpHandler;
-          options: HttpMiddlewareOptions;
-        }) => {
-          const middleware = this.createExpressHandler(handler.bind(controllerInstance));
-          if (options?.errorHandler) {
-            router.use(path, (err: any, req: Request, res: Response, next: NextFunction) => {
-              const ctx: HttpContext = { req: req as HttpReq, res: res as HttpRes, next, err };
-              handler.call(controllerInstance, ctx);
-            });
-          } else {
-            router.use(path, middleware);
-          }
-        },
-      );
+      controllers.forEach((ControllerClass) => {
+        const controllerPath = Reflect.getMetadata('controller:path', ControllerClass);
+        const routes = Reflect.getMetadata('controller:routes', ControllerClass) || [];
+        const middlewares = Reflect.getMetadata('controller:middlewares', ControllerClass) || [];
 
-      // Apply routes
-      routes.forEach(
-        ({
-          method,
-          path,
-          handler,
-        }: {
-          method: HttpMethods;
-          path: string;
-          handler: HttpHandler;
-        }) => {
-          const fullPath = [this.options.path, controllerPath, path]
-            .filter((p) => p && p !== '/')
-            .join('/')
-            .replace(/\/+/g, '/');
+        const router = express.Router();
+        const controllerInstance = this.container.resolve(ControllerClass);
 
-          router[method](fullPath, this.createExpressHandler(handler.bind(controllerInstance)));
-        },
-      );
+        // Apply middlewares
+        middlewares.forEach(
+          ({
+            path,
+            handler,
+            options,
+          }: {
+            path: string;
+            handler: HttpHandler;
+            options: HttpMiddlewareOptions;
+          }) => {
+            const middleware = this.createExpressHandler(handler.bind(controllerInstance));
+            if (options?.errorHandler) {
+              router.use(path, (err: any, req: Request, res: Response, next: NextFunction) => {
+                const ctx: HttpContext = { req: req as HttpReq, res: res as HttpRes, next, err };
+                handler.call(controllerInstance, ctx);
+              });
+            } else {
+              router.use(path, middleware);
+            }
+          },
+        );
 
-      this.expressApp?.use(router);
-    });
+        // Apply routes
+        routes.forEach(
+          ({
+            method,
+            path,
+            handler,
+          }: {
+            method: HttpMethods;
+            path: string;
+            handler: HttpHandler;
+          }) => {
+            const routePath = [path];
+
+            router[method](routePath, this.createExpressHandler(handler.bind(controllerInstance)));
+          },
+        );
+
+        // Mount the router at the combined path
+        const basePath = [currentModulePath, controllerPath]
+          .filter((p) => p && p !== '/')
+          .join('/')
+          .replace(/\/+/g, '/');
+
+        this.expressApp?.use(basePath, router);
+      });
+
+      return controllers;
+    };
+
+    processModule(this);
 
     this.isInitialized = true;
   }
@@ -275,7 +294,7 @@ class UserController {
 const userModule = new (class UserModule extends AppModule {
   constructor() {
     super({
-      path: '/aaa',
+      path: '/',
       providers: [{ key: 'UserService', useClass: UserService }, { useClass: UserController }],
     });
   }
@@ -295,7 +314,7 @@ const mainModule = new (class MainModule extends AppModule {
 mainModule.start(3000, () => {
   console.log('Server running on port 3000');
   setTimeout(async () => {
-    const baseUrl = 'http://localhost:3000/api/users';
+    const baseUrl = 'http://localhost:3000/api/aaa/users';
 
     // Users test
     (async function userTests() {

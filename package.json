@@ -1,6 +1,6 @@
 {
   "name": "hivest",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": "fernandohenriqsilva@gmail.com",
   "license": "MIT",
   "main": "./build/index.cjs",

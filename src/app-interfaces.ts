@@ -44,13 +44,11 @@ export type HttpContext = {
 export type HttpHandler = (ctx: HttpContext) => any;
 export type HttpMiddlewareOptions = { errorHandler?: boolean };
 
+export type UseClass = new (...args: any[]) => any;
+
+export type ModuleProvider = UseClass | { key: string; useClass: UseClass };
 export interface ModuleOptions {
   path?: string;
-  providers?: { key?: string; useClass: any }[];
+  providers?: ModuleProvider[];
   imports?: AppModule[];
-}
-
-export interface ClassProvider<T> {
-  provide: string | Function;
-  useClass: new (...args: any[]) => T;
 }

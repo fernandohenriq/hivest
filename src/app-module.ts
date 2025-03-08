@@ -9,6 +9,7 @@ import {
   HttpReq,
   HttpRes,
   ModuleOptions,
+  ModuleProvider,
 } from './app-interfaces';
 
 export class AppModule {
@@ -28,9 +29,10 @@ export class AppModule {
     // Register providers (now including controllers)
     const allProviders = module.options.providers || [];
 
-    allProviders.forEach((provider: { key?: string; useClass: any }) => {
-      const token = provider.key || provider.useClass;
-      this.container.register(token, { useClass: provider.useClass });
+    allProviders.forEach((provider: ModuleProvider) => {
+      const token = typeof provider === 'function' ? provider.name : provider.key;
+      const useClass = typeof provider === 'function' ? provider : provider.useClass;
+      this.container.register(token, { useClass });
     });
 
     // Process imported modules
@@ -59,9 +61,10 @@ export class AppModule {
 
     // Collect all controllers
     const controllers = [
-      ...(this.options.providers?.map((p) => p.useClass) || []),
+      ...(this.options.providers?.map((p) => (typeof p === 'function' ? p : p.useClass)) || []),
       ...(this.options.imports?.flatMap(
-        (m) => m.options.providers?.map((p: any) => p.useClass) || [],
+        (m) =>
+          m.options.providers?.map((p: any) => (typeof p === 'function' ? p : p.useClass)) || [],
       ) || []),
     ];
 
@@ -77,7 +80,7 @@ export class AppModule {
         .replace(/\/+/g, '/');
 
       const controllers = [
-        ...(module.options.providers?.map((p) => p.useClass) || []),
+        ...(module.options.providers?.map((p) => (typeof p === 'function' ? p : p.useClass)) || []),
         ...(module.options.imports?.flatMap((m) => processModule(m, currentModulePath)) || []),
       ];
 

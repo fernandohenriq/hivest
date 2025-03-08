@@ -29,6 +29,51 @@ export interface HttpReq {
 export interface HttpRes {
   status: (status: number) => HttpRes;
   json: (body: any) => HttpRes;
+
+  // Informational responses (100 – 199)
+  continue: (data?: any) => HttpRes;
+  switchingProtocols: (data?: any) => HttpRes;
+  processing: (data?: any) => HttpRes;
+  earlyHints: (data?: any) => HttpRes;
+
+  // Successful responses (200 – 299)
+  ok: (data?: any) => HttpRes;
+  created: (data?: any) => HttpRes;
+  accepted: (data?: any) => HttpRes;
+  nonAuthoritativeInformation: (data?: any) => HttpRes;
+  noContent: () => HttpRes;
+  resetContent: () => HttpRes;
+  partialContent: (data?: any) => HttpRes;
+
+  // Redirection messages (300 – 399)
+  multipleChoices: (data?: any) => HttpRes;
+  movedPermanently: (data?: any) => HttpRes;
+  found: (data?: any) => HttpRes;
+  seeOther: (data?: any) => HttpRes;
+  notModified: () => HttpRes;
+  temporaryRedirect: (data?: any) => HttpRes;
+  permanentRedirect: (data?: any) => HttpRes;
+
+  // Client error responses (400 – 499)
+  badRequest: (data?: any) => HttpRes;
+  unauthorized: (data?: any) => HttpRes;
+  paymentRequired: (data?: any) => HttpRes;
+  forbidden: (data?: any) => HttpRes;
+  notFound: (data?: any) => HttpRes;
+  methodNotAllowed: (data?: any) => HttpRes;
+  notAcceptable: (data?: any) => HttpRes;
+  requestTimeout: (data?: any) => HttpRes;
+  conflict: (data?: any) => HttpRes;
+  gone: (data?: any) => HttpRes;
+  unprocessableEntity: (data?: any) => HttpRes;
+  tooManyRequests: (data?: any) => HttpRes;
+
+  // Server error responses (500 – 599)
+  internalServerError: (data?: any) => HttpRes;
+  notImplemented: (data?: any) => HttpRes;
+  badGateway: (data?: any) => HttpRes;
+  serviceUnavailable: (data?: any) => HttpRes;
+  gatewayTimeout: (data?: any) => HttpRes;
 }
 
 export type HttpErr = any;

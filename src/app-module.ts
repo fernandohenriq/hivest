@@ -36,7 +36,14 @@ export class AppModule {
     });
 
     // Process imported modules
-    await Promise.all(module.options.imports?.map((m) => this.initModules(m, visited)) ?? []);
+    await Promise.all(
+      module.options.imports?.map((module) => {
+        if (module instanceof AppModule) {
+          return this.initModules(module, visited);
+        }
+        return this.initModules(new module(), visited);
+      }) ?? [],
+    );
   }
 
   private createExpressHandler(handler: HttpHandler) {
@@ -62,10 +69,19 @@ export class AppModule {
     // Collect all controllers
     const controllers = [
       ...(this.options.providers?.map((p) => (typeof p === 'function' ? p : p.useClass)) || []),
-      ...(this.options.imports?.flatMap(
-        (m) =>
-          m.options.providers?.map((p: any) => (typeof p === 'function' ? p : p.useClass)) || [],
-      ) || []),
+      ...(this.options.imports?.flatMap((module) => {
+        if (module instanceof AppModule) {
+          return (
+            module.options.providers?.map((p: any) => (typeof p === 'function' ? p : p.useClass)) ||
+            []
+          );
+        }
+        return (
+          new module().options.providers?.map((p: any) =>
+            typeof p === 'function' ? p : p.useClass,
+          ) || []
+        );
+      }) || []),
     ];
 
     // Initialize Express
@@ -81,7 +97,11 @@ export class AppModule {
 
       const controllers = [
         ...(module.options.providers?.map((p) => (typeof p === 'function' ? p : p.useClass)) || []),
-        ...(module.options.imports?.flatMap((m) => processModule(m, currentModulePath)) || []),
+        ...(module.options.imports?.flatMap((m) =>
+          m instanceof AppModule
+            ? processModule(m, currentModulePath)
+            : processModule(new m(), currentModulePath),
+        ) || []),
       ];
 
       controllers.forEach((ControllerClass) => {

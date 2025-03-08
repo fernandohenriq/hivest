@@ -1,4 +1,4 @@
-import express, { Application, NextFunction } from 'express';
+import express, { Application, NextFunction, Response } from 'express';
 import { DependencyContainer, container } from 'tsyringe';
 
 import {
@@ -11,6 +11,226 @@ import {
   ModuleOptions,
   ModuleProvider,
 } from './app-interfaces';
+
+// Helper function to enhance Express response with status helpers
+function enhanceResponse(res: Response): HttpRes {
+  // Cast to any to allow adding properties
+  const enhancedRes = res as any;
+
+  // Informational responses (100 – 199)
+  enhancedRes.continue = (data?: any) => {
+    res.status(100);
+    if (data) res.json(data);
+    return enhancedRes;
+  };
+
+  enhancedRes.switchingProtocols = (data?: any) => {
+    res.status(101);
+    if (data) res.json(data);
+    return enhancedRes;
+  };
+
+  enhancedRes.processing = (data?: any) => {
+    res.status(102);
+    if (data) res.json(data);
+    return enhancedRes;
+  };
+
+  enhancedRes.earlyHints = (data?: any) => {
+    res.status(103);
+    if (data) res.json(data);
+    return enhancedRes;
+  };
+
+  // Successful responses (200 – 299)
+  enhancedRes.ok = (data?: any) => {
+    res.status(200);
+    if (data) res.json(data);
+    return enhancedRes;
+  };
+
+  enhancedRes.created = (data?: any) => {
+    res.status(201);
+    if (data) res.json(data);
+    return enhancedRes;
+  };
+
+  enhancedRes.accepted = (data?: any) => {
+    res.status(202);
+    if (data) res.json(data);
+    return enhancedRes;
+  };
+
+  enhancedRes.nonAuthoritativeInformation = (data?: any) => {
+    res.status(203);
+    if (data) res.json(data);
+    return enhancedRes;
+  };
+
+  enhancedRes.noContent = () => {
+    res.status(204).end();
+    return enhancedRes;
+  };
+
+  enhancedRes.resetContent = () => {
+    res.status(205).end();
+    return enhancedRes;
+  };
+
+  enhancedRes.partialContent = (data?: any) => {
+    res.status(206);
+    if (data) res.json(data);
+    return enhancedRes;
+  };
+
+  // Redirection messages (300 – 399)
+  enhancedRes.multipleChoices = (data?: any) => {
+    res.status(300);
+    if (data) res.json(data);
+    return enhancedRes;
+  };
+
+  enhancedRes.movedPermanently = (data?: any) => {
+    res.status(301);
+    if (data) res.json(data);
+    return enhancedRes;
+  };
+
+  enhancedRes.found = (data?: any) => {
+    res.status(302);
+    if (data) res.json(data);
+    return enhancedRes;
+  };
+
+  enhancedRes.seeOther = (data?: any) => {
+    res.status(303);
+    if (data) res.json(data);
+    return enhancedRes;
+  };
+
+  enhancedRes.notModified = () => {
+    res.status(304).end();
+    return enhancedRes;
+  };
+
+  enhancedRes.temporaryRedirect = (data?: any) => {
+    res.status(307);
+    if (data) res.json(data);
+    return enhancedRes;
+  };
+
+  enhancedRes.permanentRedirect = (data?: any) => {
+    res.status(308);
+    if (data) res.json(data);
+    return enhancedRes;
+  };
+
+  // Client error responses (400 – 499)
+  enhancedRes.badRequest = (data?: any) => {
+    res.status(400);
+    if (data) res.json(data);
+    return enhancedRes;
+  };
+
+  enhancedRes.unauthorized = (data?: any) => {
+    res.status(401);
+    if (data) res.json(data);
+    return enhancedRes;
+  };
+
+  enhancedRes.paymentRequired = (data?: any) => {
+    res.status(402);
+    if (data) res.json(data);
+    return enhancedRes;
+  };
+
+  enhancedRes.forbidden = (data?: any) => {
+    res.status(403);
+    if (data) res.json(data);
+    return enhancedRes;
+  };
+
+  enhancedRes.notFound = (data?: any) => {
+    res.status(404);
+    if (data) res.json(data);
+    return enhancedRes;
+  };
+
+  enhancedRes.methodNotAllowed = (data?: any) => {
+    res.status(405);
+    if (data) res.json(data);
+    return enhancedRes;
+  };
+
+  enhancedRes.notAcceptable = (data?: any) => {
+    res.status(406);
+    if (data) res.json(data);
+    return enhancedRes;
+  };
+
+  enhancedRes.requestTimeout = (data?: any) => {
+    res.status(408);
+    if (data) res.json(data);
+    return enhancedRes;
+  };
+
+  enhancedRes.conflict = (data?: any) => {
+    res.status(409);
+    if (data) res.json(data);
+    return enhancedRes;
+  };
+
+  enhancedRes.gone = (data?: any) => {
+    res.status(410);
+    if (data) res.json(data);
+    return enhancedRes;
+  };
+
+  enhancedRes.unprocessableEntity = (data?: any) => {
+    res.status(422);
+    if (data) res.json(data);
+    return enhancedRes;
+  };
+
+  enhancedRes.tooManyRequests = (data?: any) => {
+    res.status(429);
+    if (data) res.json(data);
+    return enhancedRes;
+  };
+
+  // Server error responses (500 – 599)
+  enhancedRes.internalServerError = (data?: any) => {
+    res.status(500);
+    if (data) res.json(data);
+    return enhancedRes;
+  };
+
+  enhancedRes.notImplemented = (data?: any) => {
+    res.status(501);
+    if (data) res.json(data);
+    return enhancedRes;
+  };
+
+  enhancedRes.badGateway = (data?: any) => {
+    res.status(502);
+    if (data) res.json(data);
+    return enhancedRes;
+  };
+
+  enhancedRes.serviceUnavailable = (data?: any) => {
+    res.status(503);
+    if (data) res.json(data);
+    return enhancedRes;
+  };
+
+  enhancedRes.gatewayTimeout = (data?: any) => {
+    res.status(504);
+    if (data) res.json(data);
+    return enhancedRes;
+  };
+
+  return enhancedRes;
+}
 
 export class AppModule {
   private expressApp?: Application;
@@ -50,7 +270,7 @@ export class AppModule {
     return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
       const ctx: HttpContext = {
         req: req as unknown as HttpReq,
-        res: res as unknown as HttpRes,
+        res: enhanceResponse(res),
         next,
       };
 
@@ -133,7 +353,7 @@ export class AppModule {
               ) => {
                 const ctx: HttpContext = {
                   req: req as unknown as HttpReq,
-                  res: res as unknown as HttpRes,
+                  res: enhanceResponse(res),
                   next,
                   err,
                 };

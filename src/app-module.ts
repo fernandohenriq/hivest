@@ -10,6 +10,7 @@ import {
   HttpRes,
   ModuleOptions,
   ModuleProvider,
+  UseClass,
 } from './app-interfaces';
 
 // Helper function to enhance Express response with status helpers
@@ -406,5 +407,28 @@ export class AppModule {
 
   getExpressApp(): Application | undefined {
     return this.expressApp;
+  }
+
+  setProviders(providers: ModuleProvider[]) {
+    this.options.providers = [...(this.options.providers || []), ...providers].filter(
+      (p, index, self) => self.indexOf(p) === index,
+    );
+  }
+
+  setImports(imports: (AppModule | UseClass<AppModule>)[]) {
+    this.options.imports = [...(this.options.imports || []), ...imports].filter(
+      (p, index, self) => self.indexOf(p) === index,
+    );
+  }
+
+  setPath(path: string) {
+    this.options.path = path;
+  }
+
+  setOptions(options: ModuleOptions) {
+    const { providers, imports, path } = options ?? {};
+    Array.isArray(providers) && this.setProviders(providers);
+    Array.isArray(imports) && this.setImports(imports);
+    typeof path === 'string' && this.setPath(path);
   }
 }

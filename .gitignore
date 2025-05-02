@@ -1,0 +1,18 @@
+# Folders
+node_modules/
+node_modules_old/
+dist/
+build/
+uploads/
+
+# Extensions
+*.env
+*.log
+*.sqlite
+
+# Files
+package-lock.json
+*/package-lock.json
+
+# Others
+*.hide.*

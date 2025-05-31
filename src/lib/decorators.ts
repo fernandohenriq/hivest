@@ -12,7 +12,7 @@ export function Register(token: string) {
   };
 }
 
-export function Inject(token: string) {
+export function Inject(token: string): any {
   return (target: any, propertyKey: string | symbol, parameterIndex: number) => {
     return inject(token)(target, propertyKey, parameterIndex);
   };

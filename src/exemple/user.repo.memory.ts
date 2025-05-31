@@ -1,5 +1,3 @@
-import { inject } from 'tsyringe';
-
 import { Inject, Injectable } from '../lib/decorators';
 import { UserRepo } from './user.repo.interface';
 
@@ -10,7 +8,7 @@ export class Db {
 @Injectable()
 export class UserRepoMemory implements UserRepo {
   constructor(
-    @inject('Db')
+    @Inject('Db')
     private db: Db,
   ) {}
 

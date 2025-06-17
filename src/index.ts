@@ -1,12 +1,15 @@
 import 'reflect-metadata';
 
+import { CompanyController } from './exemple/company.controller';
+import { CompanyRepoMemory } from './exemple/company.repo.memory';
+import { CompanyService } from './exemple/company.service';
 import { UserController } from './exemple/user.controller';
 import { Db, UserRepoMemory } from './exemple/user.repo.memory';
 import { UserService } from './exemple/user.service';
 import { AppModule } from './lib/module';
 
 const mainModule = new AppModule({
-  path: '/',
+  path: '/api',
   providers: [
     { key: 'UserService', provide: UserService },
     {
@@ -17,8 +20,13 @@ const mainModule = new AppModule({
       key: 'Db',
       provide: Db,
     },
+    { key: 'CompanyService', provide: CompanyService },
+    {
+      key: 'CompanyRepo',
+      provide: CompanyRepoMemory,
+    },
   ],
-  controllers: [UserController],
+  controllers: [UserController, CompanyController],
 });
 
 (async () => {

@@ -6,18 +6,21 @@ import { CompanyService } from './company.service';
 export class CompanyController {
   constructor(@Inject('CompanyService') private readonly companyService: CompanyService) {}
 
-  @HttpPost('/')
-  async create(company: Company): Promise<Company> {
-    return this.companyService.create(company);
+  @HttpPost('/companies')
+  async create(ctx: { req: any; res: any }): Promise<void> {
+    const company = await this.companyService.create(ctx.req.body);
+    ctx.res.json(company);
   }
 
-  @HttpGet('/:id')
-  async get(id: string): Promise<Company | null> {
-    return this.companyService.get(id);
+  @HttpGet('/companies/:id')
+  async get(ctx: { req: any; res: any }): Promise<void> {
+    const company = await this.companyService.get(ctx.req.params.id);
+    ctx.res.json(company);
   }
 
-  @HttpPut('/:id')
-  async update(id: string, data: Partial<Company>): Promise<Company | null> {
-    return this.companyService.update(id, data);
+  @HttpPut('/companies/:id')
+  async update(ctx: { req: any; res: any }): Promise<void> {
+    const company = await this.companyService.update(ctx.req.params.id, ctx.req.body);
+    ctx.res.json(company);
   }
 }

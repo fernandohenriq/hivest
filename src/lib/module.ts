@@ -41,12 +41,14 @@ export class AppModule {
         handler: (ctx: { req: any; res: any; next: Function }) => Promise<any>;
         propertyKey: string;
       }[] = Reflect.getMetadata('controller:routes', controller) || [];
+
       for (const route of routes) {
         const fullPath = `${modulePath}${route.path}`.replace('//', '/');
-        this.app[route.method](fullPath, (req: any, res: any, next: Function) => {
-          const ctx = { req, res, next };
+        console.log(`Registering route: ${route.method.toUpperCase()} ${fullPath}`);
+
+        this.app[route.method](fullPath, async (req: any, res: any, next: Function) => {
           try {
-            return controllerInstance[route.propertyKey](ctx);
+            await controllerInstance[route.propertyKey]({ req, res });
           } catch (error) {
             next(error);
           }

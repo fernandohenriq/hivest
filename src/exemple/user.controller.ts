@@ -10,15 +10,15 @@ export class UserController {
     readonly userService: UserService,
   ) {}
 
-  @HttpPost('/')
-  async create({ req, res, next }: any) {
+  @HttpPost('/users')
+  async create({ req, res }: { req: any; res: any }) {
     const user = await this.userService.createUser(req.body);
     return res.status(201).json(user);
   }
 
-  @HttpGet('/:userId')
-  async get({ req, res, next }: any) {
-    const user = await this.userService.getUser(req.params.userId);
+  @HttpGet('/users/:id')
+  async get({ req, res }: { req: any; res: any }) {
+    const user = await this.userService.getUser(req.params.id);
     return res.status(200).json(user);
   }
 }

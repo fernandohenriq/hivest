@@ -13,12 +13,14 @@ export class AppModule {
   private app: express.Application = express();
   private initialized: boolean = false;
   private bootstrapped: boolean = false;
+  private parentModule?: AppModule;
 
   constructor(
     readonly options: {
       path?: string;
-      providers: Provider[];
-      controllers: Controller[];
+      providers?: Provider[];
+      controllers?: Controller[];
+      imports?: (AppModule | (new () => AppModule))[];
     },
   ) {
     this.app.use(express.json());
@@ -27,9 +29,32 @@ export class AppModule {
   async bootstrap() {
     if (this.bootstrapped) return this;
 
-    const { path: modulePath = '/', providers, controllers } = this.options;
+    const { path: modulePath = '/', providers = [], controllers = [], imports = [] } = this.options;
 
-    // register providers
+    // Register imported modules first (parents)
+    for (const importedModule of imports) {
+      const moduleInstance =
+        importedModule instanceof AppModule ? importedModule : new importedModule();
+
+      // Set this as parent for the imported module
+      moduleInstance.parentModule = this;
+
+      // Bootstrap the imported module
+      await moduleInstance.bootstrap();
+
+      // Merge providers from imported module
+      const importedProviders = moduleInstance.options.providers || [];
+      providers.push(...importedProviders);
+
+      // Register imported module's routes under this module's path
+      const importedPath = moduleInstance.options.path || '/';
+      const fullImportedPath = `${modulePath}${importedPath}`.replace('//', '/');
+
+      // Mount the imported module's app under this path
+      this.app.use(fullImportedPath, moduleInstance.app);
+    }
+
+    // register providers (including inherited ones)
     for (const provider of providers) {
       if (provider instanceof Function) {
         // Class provider
@@ -50,7 +75,7 @@ export class AppModule {
       }
     }
 
-    // resolve controllers
+    // resolve controllers (only for this module, not imported ones)
     for (const controller of controllers) {
       const controllerInstance = container.resolve(controller);
       const routes: {
@@ -61,10 +86,10 @@ export class AppModule {
       }[] = Reflect.getMetadata('controller:routes', controller) || [];
 
       for (const route of routes) {
-        const fullPath = `${modulePath}${route.path}`.replace('//', '/');
-        console.log(`Registering route: ${route.method.toUpperCase()} ${fullPath}`);
+        const routePath = `${modulePath}${route.path}`.replace('//', '/');
+        console.log(`Registering route: ${route.method.toUpperCase()} ${routePath}`);
 
-        this.app[route.method](fullPath, async (req: any, res: any, next: Function) => {
+        this.app[route.method](routePath, async (req: any, res: any, next: Function) => {
           try {
             await controllerInstance[route.propertyKey]({ req, res });
           } catch (error) {

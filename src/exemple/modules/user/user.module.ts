@@ -8,13 +8,13 @@ class MemoryDb implements IMemoryDb {
 }
 
 export const userModule = new AppModule({
-  path: '/api/users',
+  path: '/users',
   providers: [
     { key: 'UserService', provide: UserService },
     { key: 'UserRepo', provide: UserRepoMemory },
     {
       key: 'MemoryDb',
-      provide: {},
+      provide: MemoryDb,
     },
   ],
   controllers: [UserController],

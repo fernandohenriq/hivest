@@ -30,16 +30,32 @@ export function Controller(options: { path?: string }) {
 const createHttpMethodDecorator =
   (method: 'post' | 'get' | 'put' | 'patch' | 'delete') =>
   (path?: string) =>
-  (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
+  (target: any, context?: any, ...args: any[]): any => {
+    // Handle new decorator proposal (stage 3)
+    if (context && typeof context === 'object' && 'name' in context) {
+      const routes = Reflect.getMetadata('controller:routes', target.constructor) || [];
+      routes.push({
+        method,
+        path: path || '',
+        handler: target[context.name],
+        propertyKey: context.name,
+      });
+      Reflect.defineMetadata('controller:routes', routes, target.constructor);
+      return target[context.name];
+    }
+
+    // Handle legacy decorator proposal
+    const propertyKey = context;
+    const descriptor = args[0];
     const routes = Reflect.getMetadata('controller:routes', target.constructor) || [];
     routes.push({
       method,
       path: path || '',
-      handler: descriptor.value,
-      propertyKey,
+      handler: descriptor?.value || target[propertyKey as string],
+      propertyKey: String(propertyKey),
     });
     Reflect.defineMetadata('controller:routes', routes, target.constructor);
-    return descriptor;
+    return descriptor?.value || target[propertyKey as string];
   };
 
 export const HttpPost = createHttpMethodDecorator('post');

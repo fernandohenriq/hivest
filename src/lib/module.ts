@@ -94,6 +94,7 @@ export class AppModule {
 
       for (const controller of importedControllers) {
         const controllerInstance = container.resolve(controller);
+        const controllerPath = Reflect.getMetadata('controller:path', controller) || '';
         const routes: {
           method: 'get' | 'post' | 'put' | 'patch' | 'delete';
           path: string;
@@ -102,7 +103,10 @@ export class AppModule {
         }[] = Reflect.getMetadata('controller:routes', controller) || [];
 
         for (const route of routes) {
-          const routePath = `${modulePath}${importedPath}${route.path}`.replace('//', '/');
+          const routePath = `${modulePath}${importedPath}${controllerPath}${route.path}`.replace(
+            '//',
+            '/',
+          );
           console.log(`Registering route: ${route.method.toUpperCase()} ${routePath}`);
 
           this.app[route.method](routePath, async (req: any, res: any, next: Function) => {
@@ -119,6 +123,7 @@ export class AppModule {
     // resolve controllers (only for this module, not imported ones)
     for (const controller of controllers) {
       const controllerInstance = container.resolve(controller);
+      const controllerPath = Reflect.getMetadata('controller:path', controller) || '';
       const routes: {
         method: 'get' | 'post' | 'put' | 'patch' | 'delete';
         path: string;
@@ -127,7 +132,7 @@ export class AppModule {
       }[] = Reflect.getMetadata('controller:routes', controller) || [];
 
       for (const route of routes) {
-        const routePath = `${modulePath}${route.path}`.replace('//', '/');
+        const routePath = `${modulePath}${controllerPath}${route.path}`.replace('//', '/');
         console.log(`Registering route: ${route.method.toUpperCase()} ${routePath}`);
 
         this.app[route.method](routePath, async (req: any, res: any, next: Function) => {

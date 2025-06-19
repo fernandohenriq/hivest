@@ -12,7 +12,6 @@ async function fetchJson(url: string, options?: RequestInit) {
 
 (async () => {
   await mainModule.listen(3000);
-  console.log('Server is running on port 3000');
 
   try {
     // Test company endpoints

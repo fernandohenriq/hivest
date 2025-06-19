@@ -2,25 +2,25 @@ import express from 'express';
 import 'reflect-metadata';
 import { container } from 'tsyringe';
 
-export type Provider =
+export type AppProviderType =
   | { key: string; provide: any }
   | { key: string; useValue: any }
   | (new (...args: any[]) => any);
 
-export type Controller = new (...args: any[]) => { [key: string]: any };
+export type AppControllerType = new (...args: any[]) => { [key: string]: any };
 
 export class AppModule {
   private app: express.Application = express();
   private initialized: boolean = false;
   private bootstrapped: boolean = false;
   private parentModule?: AppModule;
-  private allProviders: Provider[] = [];
+  private allProviders: AppProviderType[] = [];
 
   constructor(
     readonly options: {
       path?: string;
-      providers?: Provider[];
-      controllers?: Controller[];
+      providers?: AppProviderType[];
+      controllers?: AppControllerType[];
       imports?: (AppModule | (new () => AppModule))[];
     },
   ) {
@@ -28,7 +28,7 @@ export class AppModule {
   }
 
   // Método para obter todos os providers (incluindo os do pai)
-  private getAllProviders(): Provider[] {
+  private getAllProviders(): AppProviderType[] {
     const providers = [...this.allProviders];
 
     // Adicionar providers do módulo pai se existir

@@ -46,12 +46,32 @@ export class AppModule {
       const importedProviders = moduleInstance.options.providers || [];
       providers.push(...importedProviders);
 
-      // Register imported module's routes under this module's path
+      // Register controllers from imported module with proper path prefix
+      const importedControllers = moduleInstance.options.controllers || [];
       const importedPath = moduleInstance.options.path || '/';
-      const fullImportedPath = `${modulePath}${importedPath}`.replace('//', '/');
 
-      // Mount the imported module's app under this path
-      this.app.use(fullImportedPath, moduleInstance.app);
+      for (const controller of importedControllers) {
+        const controllerInstance = container.resolve(controller);
+        const routes: {
+          method: 'get' | 'post' | 'put' | 'patch' | 'delete';
+          path: string;
+          handler: (ctx: { req: any; res: any; next: Function }) => Promise<any>;
+          propertyKey: string;
+        }[] = Reflect.getMetadata('controller:routes', controller) || [];
+
+        for (const route of routes) {
+          const routePath = `${modulePath}${importedPath}${route.path}`.replace('//', '/');
+          console.log(`Registering route: ${route.method.toUpperCase()} ${routePath}`);
+
+          this.app[route.method](routePath, async (req: any, res: any, next: Function) => {
+            try {
+              await controllerInstance[route.propertyKey]({ req, res });
+            } catch (error) {
+              next(error);
+            }
+          });
+        }
+      }
     }
 
     // register providers (including inherited ones)

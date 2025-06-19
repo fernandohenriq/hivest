@@ -24,6 +24,6 @@
     "noUnusedParameters": false,
     "types": []
   },
-  "include": ["./src/lib/**/*", "./src/index.ts"],
-  "exclude": ["node_modules", "dist", "build", "src/exemple/**/*", "**/*.test.ts", "**/*.spec.ts"]
+  "include": ["./src/lib/**/*", "./src/index.ts", "./src/exemple/**/*"],
+  "exclude": ["node_modules", "dist", "build", "**/*.test.ts", "**/*.spec.ts"]
 }

@@ -1,5 +1,4 @@
-import { HttpGet, HttpPost, HttpPut, Inject, Injectable } from '../lib/decorators';
-import { Company, CompanyRepoMemory } from './company.repo.memory';
+import { HttpGet, HttpPost, HttpPut, Inject, Injectable } from '../../../lib/decorators';
 import { CompanyService } from './company.service';
 
 @Injectable()

@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '../lib/decorators';
+import { Inject, Injectable } from '../../../lib/decorators';
 import { UserRepo } from './user.repo.interface';
 
 @Injectable()

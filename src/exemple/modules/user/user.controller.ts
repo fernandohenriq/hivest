@@ -1,6 +1,6 @@
 import { inject, injectable } from 'tsyringe';
 
-import { HttpGet, HttpPost, HttpPut } from '../lib/decorators';
+import { HttpGet, HttpPost } from '../../../lib/decorators';
 import { UserService } from './user.service';
 
 @injectable()

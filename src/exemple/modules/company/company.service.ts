@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '../lib/decorators';
+import { Inject, Injectable } from '../../../lib/decorators';
 import { Company, CompanyRepoMemory } from './company.repo.memory';
 
 @Injectable()

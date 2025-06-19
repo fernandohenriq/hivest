@@ -1,4 +1,4 @@
-import { Injectable } from '../lib/decorators';
+import { Injectable } from '../../../lib/decorators';
 
 export interface Company {
   id: string;

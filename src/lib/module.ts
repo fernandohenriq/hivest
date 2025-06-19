@@ -2,7 +2,11 @@ import express from 'express';
 import 'reflect-metadata';
 import { container } from 'tsyringe';
 
-export type Provider = { key: string; provide: any } | (new (...args: any[]) => any);
+export type Provider =
+  | { key: string; provide: any }
+  | { key: string; useValue: any }
+  | (new (...args: any[]) => any);
+
 export type Controller = new (...args: any[]) => { [key: string]: any };
 
 export class AppModule {
@@ -27,9 +31,23 @@ export class AppModule {
 
     // register providers
     for (const provider of providers) {
-      const key = provider instanceof Function ? provider.name : provider.key;
-      const provide = provider instanceof Function ? provider : provider.provide;
-      container.registerSingleton(key, provide);
+      if (provider instanceof Function) {
+        // Class provider
+        container.registerSingleton(provider.name, provider);
+      } else if ('useValue' in provider) {
+        // Value provider
+        container.registerInstance(provider.key, provider.useValue);
+      } else {
+        // Smart provider - detect if provide is a class or value
+        const provide = provider.provide;
+        if (provide instanceof Function) {
+          // It's a class
+          container.registerSingleton(provider.key, provide);
+        } else {
+          // It's a value
+          container.registerInstance(provider.key, provide);
+        }
+      }
     }
 
     // resolve controllers

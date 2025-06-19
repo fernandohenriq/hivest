@@ -1,16 +1,18 @@
 import { Inject, Injectable } from '../../../lib/decorators';
 import { UserRepo } from './user.repo.interface';
 
-export class Db {
-  users: any[] = [];
+export interface IMemoryDb {
+  users: any[];
 }
 
 @Injectable()
 export class UserRepoMemory implements UserRepo {
   constructor(
-    @Inject('Db')
-    private db: Db,
-  ) {}
+    @Inject('MemoryDb')
+    private db: IMemoryDb,
+  ) {
+    this.db['users'] = this.db['users'] || [];
+  }
 
   async create(user: any): Promise<any> {
     this.db.users.push(user);

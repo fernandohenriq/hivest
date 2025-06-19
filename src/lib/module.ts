@@ -14,6 +14,7 @@ export class AppModule {
   private initialized: boolean = false;
   private bootstrapped: boolean = false;
   private parentModule?: AppModule;
+  private allProviders: Provider[] = [];
 
   constructor(
     readonly options: {
@@ -26,10 +27,28 @@ export class AppModule {
     this.app.use(express.json());
   }
 
+  // Método para obter todos os providers (incluindo os do pai)
+  private getAllProviders(): Provider[] {
+    const providers = [...this.allProviders];
+
+    // Adicionar providers do módulo pai se existir
+    if (this.parentModule) {
+      providers.push(...this.parentModule.getAllProviders());
+    }
+
+    return providers;
+  }
+
   async bootstrap() {
     if (this.bootstrapped) return this;
 
     const { path: modulePath = '/', providers = [], controllers = [], imports = [] } = this.options;
+
+    // Registrar providers locais primeiro
+    this.allProviders = [...providers];
+
+    // Store imported module instances to avoid creating duplicates
+    const importedModuleInstances: AppModule[] = [];
 
     // Register imported modules first (parents)
     for (const importedModule of imports) {
@@ -39,14 +58,37 @@ export class AppModule {
       // Set this as parent for the imported module
       moduleInstance.parentModule = this;
 
+      // Store the instance
+      importedModuleInstances.push(moduleInstance);
+
       // Bootstrap the imported module
       await moduleInstance.bootstrap();
+    }
 
-      // Merge providers from imported module
-      const importedProviders = moduleInstance.options.providers || [];
-      providers.push(...importedProviders);
+    // Register all providers (including inherited ones) AFTER processing imports
+    const allProviders = this.getAllProviders();
+    for (const provider of allProviders) {
+      if (provider instanceof Function) {
+        // Class provider
+        container.registerSingleton(provider.name, provider);
+      } else if ('useValue' in provider) {
+        // Value provider
+        container.registerInstance(provider.key, provider.useValue);
+      } else {
+        // Smart provider - detect if provide is a class or value
+        const provide = provider.provide;
+        if (provide instanceof Function) {
+          // It's a class
+          container.registerSingleton(provider.key, provide);
+        } else {
+          // It's a value
+          container.registerInstance(provider.key, provide);
+        }
+      }
+    }
 
-      // Register controllers from imported module with proper path prefix
+    // Register controllers from imported modules AFTER providers are registered
+    for (const moduleInstance of importedModuleInstances) {
       const importedControllers = moduleInstance.options.controllers || [];
       const importedPath = moduleInstance.options.path || '/';
 
@@ -70,27 +112,6 @@ export class AppModule {
               next(error);
             }
           });
-        }
-      }
-    }
-
-    // register providers (including inherited ones)
-    for (const provider of providers) {
-      if (provider instanceof Function) {
-        // Class provider
-        container.registerSingleton(provider.name, provider);
-      } else if ('useValue' in provider) {
-        // Value provider
-        container.registerInstance(provider.key, provider.useValue);
-      } else {
-        // Smart provider - detect if provide is a class or value
-        const provide = provider.provide;
-        if (provide instanceof Function) {
-          // It's a class
-          container.registerSingleton(provider.key, provide);
-        } else {
-          // It's a value
-          container.registerInstance(provider.key, provide);
         }
       }
     }

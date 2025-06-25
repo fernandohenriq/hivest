@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2024-12-19
+
+### Added
+
+- Added comprehensive HTTP type definitions for better type safety
+- Introduced `HttpContext` interface with `req`, `res`, `next`, and optional `err` properties
+- Added `HttpRequest` type with detailed request properties including headers, cookies, and metadata
+- Added `HttpResponse` type with response methods like `status()`, `json()`, `send()`
+- Added `HttpNext` type for middleware continuation function
+- Added `HttpError` type for error handling with optional status and message properties
+- All types are now exported from the main package for external use
+- Enhanced type safety across all controller examples
+
+### Changed
+
+- Updated all controller examples to use the new `HttpContext` interface
+- Improved type definitions for better IntelliSense and development experience
+- Enhanced error handling with proper TypeScript error types
+
 ## [0.2.0] - 2024-12-19
 
 ### Added

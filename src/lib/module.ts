@@ -27,6 +27,10 @@ export class AppModule {
     this.app.use(express.json());
   }
 
+  public getApp() {
+    return this.app;
+  }
+
   // Método para obter todos os providers (incluindo os do pai)
   private getAllProviders(): AppProviderType[] {
     const providers = [...this.allProviders];

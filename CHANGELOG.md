@@ -5,6 +5,65 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2024-12-19
+
+### Added
+
+- **Automatic Middleware System**: New `@Middleware()` decorator that automatically treats all methods without HTTP decorators as middleware
+- **Optional Path Support**: Path parameter in `@Middleware` is now optional (`@Middleware()` or `@Middleware({ path: '/route' })`)
+- **Automatic Detection**: System automatically detects middleware classes and processes their methods
+- **Simplified Middleware Creation**: No need to decorate each middleware method individually
+- **Mixed Middleware and Routes**: Can mix middleware methods and route methods in the same class
+- **Global Middleware Support**: Middleware without path executes on all routes
+- **Path-Specific Middleware**: Middleware with path executes only on matching routes
+
+### Changed
+
+- **Middleware Registration**: Middleware classes are now registered as controllers in the module
+- **Simplified API**: Reduced boilerplate for middleware creation and registration
+- **Enhanced Flexibility**: More flexible middleware system with automatic method detection
+- **Improved Organization**: Better organization of middleware logic in dedicated classes
+
+### Examples
+
+```typescript
+// Global middleware
+@Middleware()
+export class LogMiddleware {
+  async log({ req, next }) {
+    console.log(`[LOG] ${req.method} ${req.path}`);
+    next();
+  }
+
+  // This method has a decorator, so it becomes a route
+  @HttpGet('/test')
+  async test({ req, res }) {
+    console.log(`[TEST] ${req.method} ${req.path}`);
+    res.json({ message: 'test' });
+  }
+}
+
+// Path-specific middleware with routes
+@Middleware({ path: '/auth' })
+export class AuthMiddleware {
+  async validateToken({ req, res, next }) {
+    // Middleware logic
+    next();
+  }
+
+  @HttpPost('/login') // This becomes a route
+  async login({ req, res }) {
+    return res.json({ message: 'Login successful' });
+  }
+}
+```
+
+### Migration
+
+- **No Breaking Changes**: Fully compatible with previous versions
+- **Existing APIs Preserved**: All existing decorators and functionality remain unchanged
+- **Optional Upgrade**: New middleware system is optional and can be adopted gradually
+
 ## [0.5.0] - 2024-12-19
 
 ### Changed

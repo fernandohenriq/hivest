@@ -5,6 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2024-12-19
+
+### Added
+
+- **Middleware Support**: Added `@HttpMiddleware()` decorator for defining middleware methods within controllers
+- **Design Patterns Implementation**: Implemented Strategy, Composite, Template Method, and Visitor patterns for clean architecture
+- **Enhanced Type Safety**: Added comprehensive type definitions for controller items and route contexts
+- **Improved Documentation**: Added detailed JSDoc comments in English for all methods and classes
+- **Better Error Handling**: Enhanced error handling with proper TypeScript error types
+
+### Changed
+
+- **AppModule Refactoring**: Completely refactored AppModule class to eliminate code duplication
+- **Architecture Improvements**: Applied clean architecture principles with separation of concerns
+- **Provider Registration**: Centralized provider registration logic with Strategy pattern
+- **Controller Processing**: Unified controller processing logic for both local and imported modules
+- **Route Registration**: Separated route and middleware registration into dedicated methods
+- **Module Hierarchy**: Improved module inheritance and composition with Composite pattern
+- **Decorator Simplification**: Removed order property from decorators for simpler implementation
+
+### Architecture Patterns
+
+- **Strategy Pattern**: For handling different provider types and controller item types
+- **Composite Pattern**: For managing module hierarchy and provider inheritance
+- **Template Method Pattern**: For consistent controller processing across modules
+- **Visitor Pattern**: For processing controllers from imported modules
+
+### Performance
+
+- **Reduced Code Duplication**: Eliminated redundant code in route and middleware registration
+- **Optimized Processing**: Improved efficiency in controller and provider processing
+- **Better Memory Usage**: More efficient module composition and inheritance
+
 ## [0.3.0] - 2024-12-19
 
 ### Added

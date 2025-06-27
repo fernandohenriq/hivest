@@ -30,6 +30,42 @@ export function Controller(options: { path?: string }) {
   };
 }
 
+// Middleware decorator to define middleware class where all methods are treated as middleware
+export function Middleware(options?: { path?: string }) {
+  return (target: new (...args: any[]) => any) => {
+    // Apply Injectable decorator first
+    injectable()(target);
+
+    // Store the middleware path in metadata (optional)
+    Reflect.defineMetadata('controller:path', options?.path || '', target);
+
+    // Mark this class as a middleware class
+    Reflect.defineMetadata('controller:isMiddleware', true, target);
+
+    // Get all method names from the prototype
+    const methodNames = Object.getOwnPropertyNames(target.prototype).filter(
+      (name) => name !== 'constructor' && typeof target.prototype[name] === 'function',
+    );
+
+    // Create middleware items for all methods that don't already have decorators
+    const existingItems = Reflect.getMetadata('controller:items', target) || [];
+    const existingMethodNames = existingItems.map((item: any) => item.propertyKey);
+
+    const newItems = methodNames
+      .filter((methodName) => !existingMethodNames.includes(methodName))
+      .map((methodName) => ({
+        type: 'middleware',
+        handler: target.prototype[methodName],
+        propertyKey: methodName,
+      }));
+
+    // Combine existing items with new middleware items
+    Reflect.defineMetadata('controller:items', [...existingItems, ...newItems], target);
+
+    return target;
+  };
+}
+
 // Middleware decorator to define middleware methods within a controller
 export function HttpMiddleware() {
   return (target: any, propertyKey: string | symbol, descriptor: PropertyDescriptor) => {

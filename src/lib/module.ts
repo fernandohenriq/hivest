@@ -106,6 +106,13 @@ export class AppModule {
   }
 
   /**
+   * Check if a controller is marked as middleware
+   */
+  private isMiddlewareController(controller: AppControllerType): boolean {
+    return Reflect.getMetadata('controller:isMiddleware', controller) === true;
+  }
+
+  /**
    * Process and register a single controller item (route or middleware)
    * Uses the Strategy pattern to handle different item types
    */
@@ -155,12 +162,18 @@ export class AppModule {
   /**
    * Process and register all controllers from a module
    * Uses the Template Method pattern to process controllers consistently
+   * Now automatically detects and processes middleware classes
    */
   private processControllers(controllers: AppControllerType[], modulePath: string): void {
     for (const controller of controllers) {
       const controllerInstance = container.resolve(controller);
       const controllerPath = Reflect.getMetadata('controller:path', controller) || '';
       const items: ControllerItem[] = Reflect.getMetadata('controller:items', controller) || [];
+
+      // If this is a middleware controller, ensure all methods without decorators are treated as middleware
+      if (this.isMiddlewareController(controller)) {
+        this.ensureMiddlewareMethods(controller, items);
+      }
 
       const context: RouteContext = {
         modulePath,
@@ -173,6 +186,40 @@ export class AppModule {
         this.processControllerItem(item, context);
       }
     }
+  }
+
+  /**
+   * Ensure all methods without decorators in a middleware controller are treated as middleware
+   */
+  private ensureMiddlewareMethods(
+    controller: AppControllerType,
+    existingItems: ControllerItem[],
+  ): void {
+    const existingMethodNames = existingItems.map((item) => item.propertyKey);
+
+    // Get all method names from the prototype
+    const methodNames = Object.getOwnPropertyNames(controller.prototype).filter(
+      (name) => name !== 'constructor' && typeof controller.prototype[name] === 'function',
+    );
+
+    // Find methods that don't have any decorators
+    const methodsWithoutDecorators = methodNames.filter(
+      (methodName) => !existingMethodNames.includes(methodName),
+    );
+
+    // Add middleware items for methods without decorators
+    const newMiddlewareItems = methodsWithoutDecorators.map((methodName) => ({
+      type: 'middleware' as const,
+      handler: controller.prototype[methodName],
+      propertyKey: methodName,
+    }));
+
+    // Update the metadata with new middleware items
+    Reflect.defineMetadata(
+      'controller:items',
+      [...existingItems, ...newMiddlewareItems],
+      controller,
+    );
   }
 
   /**

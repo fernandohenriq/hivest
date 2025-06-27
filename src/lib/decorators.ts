@@ -21,6 +21,9 @@ export function Inject(token: string): any {
 // Controller decorator to define base path for the controller
 export function Controller(options: { path?: string }) {
   return (target: new (...args: any[]) => any) => {
+    // Apply Injectable decorator first
+    injectable()(target);
+
     // Store the controller path in metadata
     Reflect.defineMetadata('controller:path', options.path || '', target);
     return target;

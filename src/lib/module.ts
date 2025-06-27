@@ -202,7 +202,7 @@ export class AppModule {
       (name) => name !== 'constructor' && typeof controller.prototype[name] === 'function',
     );
 
-    // Find methods that don't have any decorators
+    // Find methods that don't have any decorators (not in existingItems)
     const methodsWithoutDecorators = methodNames.filter(
       (methodName) => !existingMethodNames.includes(methodName),
     );
@@ -214,12 +214,11 @@ export class AppModule {
       propertyKey: methodName,
     }));
 
-    // Update the metadata with new middleware items
-    Reflect.defineMetadata(
-      'controller:items',
-      [...existingItems, ...newMiddlewareItems],
-      controller,
-    );
+    // Combine existing items (routes) with new middleware items
+    const allItems = [...existingItems, ...newMiddlewareItems];
+
+    // Update the metadata with combined items
+    Reflect.defineMetadata('controller:items', allItems, controller);
   }
 
   /**

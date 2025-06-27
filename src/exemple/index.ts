@@ -14,6 +14,10 @@ async function fetchJson(url: string, options?: RequestInit) {
   await mainModule.listen(3000);
 
   try {
+    // Test middleware route
+    const test = await fetchJson('http://localhost:3000/api/users/test');
+    console.log('TEST', test);
+
     // Test company endpoints
     const companyCreated = await fetchJson('http://localhost:3000/api/companies', {
       method: 'POST',

@@ -49,7 +49,7 @@ Hivest is a framework that simplifies the creation of modular Node.js applicatio
 - Type-safe development
 - Automatic middleware detection
 
-## �� **Installation**
+## 🎯 **Installation**
 
 ```bash
 npm install hivest
@@ -138,6 +138,13 @@ export class LogMiddleware {
   async log({ req, next }) {
     console.log(`[LOG] ${req.method} ${req.path}`);
     next();
+  }
+
+  // This method has a decorator, so it becomes a route
+  @HttpGet('/test')
+  async test({ req, res }) {
+    console.log(`[TEST] ${req.method} ${req.path}`);
+    res.json({ message: 'test' });
   }
 }
 
@@ -372,6 +379,8 @@ export class AuthMiddleware {
   }
 }
 ```
+
+**Nota**: Em classes com `@Middleware`, métodos com decorators HTTP (como `@HttpGet`, `@HttpPost`, etc.) se tornam rotas, enquanto métodos sem decorators se tornam middleware automaticamente.
 
 ### **@Injectable()**
 

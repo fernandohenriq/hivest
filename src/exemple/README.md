@@ -9,7 +9,7 @@ O Hivest agora suporta middleware automático que funciona como um Controller. Q
 ### **Exemplo: LogMiddleware**
 
 ```typescript
-import { Middleware } from '../../lib/decorators';
+import { HttpGet, Middleware } from '../../lib/decorators';
 import { HttpContext } from '../../lib/types';
 
 @Middleware()
@@ -17,6 +17,13 @@ export class LogMiddleware {
   async log({ req, next }: HttpContext) {
     console.log(`[LOG] ${req.method} ${req.path}`);
     next();
+  }
+
+  // Este método tem um decorator, então será tratado como rota
+  @HttpGet('/test')
+  async test({ req, res }: { req: any; res: any }) {
+    console.log(`[TEST] ${req.method} ${req.path}`);
+    res.json({ message: 'test' });
   }
 }
 ```

@@ -7,10 +7,11 @@ A **simple**, **fast** and **minimalist** framework for Node.js that allows you 
 Hivest is a framework that simplifies the creation of modular Node.js applications, offering:
 
 - **Hierarchical modules** with provider inheritance
-- **Decorators** for controllers and routes
+- **Decorators** for controllers, routes, and middlewares
 - **Automatic dependency injection**
 - **Organized path structure**
 - **Zero complex configuration**
+- **Clean architecture patterns**
 
 ## 🚀 **Key Features**
 
@@ -37,6 +38,14 @@ Hivest is a framework that simplifies the creation of modular Node.js applicatio
 - Customizable decorators
 - Hierarchically organized paths
 - Easy to extend
+- Middleware support
+
+### 🏗️ **Architecture**
+
+- Clean design patterns (Strategy, Composite, Template Method)
+- Separation of concerns
+- Well-documented codebase
+- Type-safe development
 
 ## 📦 **Installation**
 
@@ -53,13 +62,14 @@ yarn add hivest
 The basic building block. Each module can have:
 
 - **Providers**: Services, repositories, configurations
-- **Controllers**: API endpoints
+- **Controllers**: API endpoints and middlewares
 - **Imports**: Other imported modules
 
 ### **Decorators**
 
 - `@Controller()`: Defines base path for a controller
 - `@HttpPost()`, `@HttpGet()`, etc.: Defines HTTP routes
+- `@HttpMiddleware()`: Defines middleware methods
 - `@Injectable()`: Marks class for dependency injection
 - `@Inject()`: Inject specific dependencies
 
@@ -92,7 +102,34 @@ const userModule = new AppModule({
 });
 ```
 
-### **2. Modules with Inheritance**
+### **2. Controllers with Middleware**
+
+```typescript
+@Injectable()
+@Controller({ path: '/auth' })
+class AuthController {
+  @HttpMiddleware()
+  async validateToken({ req, res, next }) {
+    const token = req.headers.authorization;
+    if (!token) {
+      return res.status(401).json({ error: 'No token provided' });
+    }
+    next();
+  }
+
+  @HttpPost('/login')
+  async login({ req, res }) {
+    return res.json({ message: 'Login successful' });
+  }
+
+  @HttpGet('/profile')
+  async getProfile({ req, res }) {
+    return res.json({ user: req.user });
+  }
+}
+```
+
+### **3. Modules with Inheritance**
 
 ```typescript
 // Parent module with providers
@@ -116,7 +153,7 @@ class UserModule extends AppModule {
 }
 ```
 
-### **3. Path Hierarchy**
+### **4. Path Hierarchy**
 
 ```typescript
 @Controller({ path: '/auth' })
@@ -127,7 +164,7 @@ class AuthController {
 }
 ```
 
-### **4. Dependency Injection**
+### **5. Dependency Injection**
 
 ```typescript
 @Injectable()
@@ -216,6 +253,7 @@ The project includes complete examples in `src/exemple/` that demonstrate:
 - Controllers with custom paths
 - Provider inheritance
 - Authentication and settings endpoints
+- Middleware implementation
 
 ## 🌟 **Example Endpoints**
 
@@ -252,6 +290,18 @@ Defines HTTP routes:
 @HttpGet('/profile')
 @HttpPut('/update')
 @HttpDelete('/remove')
+```
+
+### **@HttpMiddleware()**
+
+Defines middleware methods within a controller:
+
+```typescript
+@HttpMiddleware()
+async validateToken({ req, res, next }) {
+  // Middleware logic here
+  next();
+}
 ```
 
 ### **@Injectable()**
@@ -296,6 +346,30 @@ class UserModule extends AppModule {
 }
 ```
 
+## 🏗️ **Architecture Patterns**
+
+Hivest implements several design patterns for clean and maintainable code:
+
+### **Strategy Pattern**
+
+- Handles different provider types (class, value, smart)
+- Processes different controller item types (route, middleware)
+
+### **Composite Pattern**
+
+- Manages module hierarchy and provider inheritance
+- Allows modules to be composed of other modules
+
+### **Template Method Pattern**
+
+- Consistent processing of controllers across modules
+- Standardized route and middleware registration
+
+### **Visitor Pattern**
+
+- Processes controllers from imported modules
+- Maintains separation between local and external module logic
+
 ## 🚀 **Why Hivest?**
 
 ### **vs NestJS**
@@ -304,6 +378,7 @@ class UserModule extends AppModule {
 - ✅ Less configuration
 - ✅ Smaller learning curve
 - ✅ Focus on simplicity
+- ✅ Cleaner architecture
 
 ### **vs Pure Express**
 
@@ -311,6 +386,7 @@ class UserModule extends AppModule {
 - ✅ Dependency injection
 - ✅ Intuitive decorators
 - ✅ Native modularity
+- ✅ Middleware support
 
 ### **vs Other frameworks**
 
@@ -318,6 +394,7 @@ class UserModule extends AppModule {
 - ✅ Familiar API
 - ✅ Easy migration
 - ✅ Optimized performance
+- ✅ Design patterns implementation
 
 ## 🤝 **Contributing**
 

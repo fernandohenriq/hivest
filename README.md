@@ -39,6 +39,7 @@ Hivest is a framework that simplifies the creation of modular Node.js applicatio
 - Hierarchically organized paths
 - Easy to extend
 - Middleware support
+- Automatic middleware classes
 
 ### 🏗️ **Architecture**
 
@@ -46,8 +47,9 @@ Hivest is a framework that simplifies the creation of modular Node.js applicatio
 - Separation of concerns
 - Well-documented codebase
 - Type-safe development
+- Automatic middleware detection
 
-## 📦 **Installation**
+## �� **Installation**
 
 ```bash
 npm install hivest
@@ -127,7 +129,43 @@ class AuthController {
 }
 ```
 
-### **3. Modules with Inheritance**
+### **3. Automatic Middleware Classes**
+
+```typescript
+// Global logging middleware
+@Middleware()
+export class LogMiddleware {
+  async log({ req, next }) {
+    console.log(`[LOG] ${req.method} ${req.path}`);
+    next();
+  }
+}
+
+// Authentication middleware with routes
+@Middleware({ path: '/auth' })
+export class AuthMiddleware {
+  async validateToken({ req, res, next }) {
+    const token = req.headers.authorization;
+    if (!token) {
+      return res.status(401).json({ error: 'No token provided' });
+    }
+    next();
+  }
+
+  @HttpPost('/login')
+  async login({ req, res }) {
+    return res.json({ message: 'Login successful' });
+  }
+}
+
+// Register in module
+const app = new AppModule({
+  path: '/api',
+  controllers: [LogMiddleware, AuthMiddleware], // All methods become middleware automatically
+});
+```
+
+### **4. Modules with Inheritance**
 
 ```typescript
 // Parent module with providers
@@ -151,7 +189,7 @@ class UserModule extends AppModule {
 }
 ```
 
-### **4. Path Hierarchy**
+### **5. Path Hierarchy**
 
 ```typescript
 @Controller({ path: '/auth' })
@@ -162,7 +200,7 @@ class AuthController {
 }
 ```
 
-### **5. Dependency Injection**
+### **6. Dependency Injection**
 
 ```typescript
 @Injectable()
@@ -299,6 +337,39 @@ Defines middleware methods within a controller:
 async validateToken({ req, res, next }) {
   // Middleware logic here
   next();
+}
+```
+
+### **@Middleware(options?)**
+
+Defines a middleware class where all methods without HTTP decorators are automatically treated as middleware:
+
+```typescript
+// Global middleware (executes on all routes)
+@Middleware()
+export class LogMiddleware {
+  async log({ req, next }) {
+    console.log(`[LOG] ${req.method} ${req.path}`);
+    next();
+  }
+}
+
+// Specific path middleware (executes only on matching routes)
+@Middleware({ path: '/auth' })
+export class AuthMiddleware {
+  async validateToken({ req, res, next }) {
+    const token = req.headers.authorization;
+    if (!token) {
+      return res.status(401).json({ error: 'No token provided' });
+    }
+    next();
+  }
+
+  // This method has a decorator, so it becomes a route
+  @HttpPost('/login')
+  async login({ req, res }) {
+    return res.json({ message: 'Login successful' });
+  }
 }
 ```
 

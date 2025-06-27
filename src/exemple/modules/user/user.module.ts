@@ -1,4 +1,5 @@
 import { AppModule } from '../../../lib/module';
+import { LogMiddleware } from '../log.middleware';
 import { AuthController } from './auth.controller';
 import { SettingsController } from './settings.controller';
 import { UserController } from './user.controller';
@@ -9,7 +10,7 @@ export class UserModule extends AppModule {
   constructor() {
     super({
       path: '/users',
-      controllers: [UserController, AuthController, SettingsController],
+      controllers: [LogMiddleware, UserController, AuthController, SettingsController],
     });
   }
 }

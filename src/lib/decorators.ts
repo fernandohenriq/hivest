@@ -27,34 +27,50 @@ export function Controller(options: { path?: string }) {
   };
 }
 
+// Middleware decorator to define middleware methods within a controller
+export function HttpMiddleware() {
+  return (target: any, propertyKey: string | symbol, descriptor: PropertyDescriptor) => {
+    const items = Reflect.getMetadata('controller:items', target.constructor) || [];
+    items.push({
+      type: 'middleware',
+      handler: descriptor.value,
+      propertyKey: String(propertyKey),
+    });
+    Reflect.defineMetadata('controller:items', items, target.constructor);
+    return descriptor;
+  };
+}
+
 const createHttpMethodDecorator =
   (method: 'post' | 'get' | 'put' | 'patch' | 'delete') =>
   (path?: string) =>
   (target: any, context?: any, ...args: any[]): any => {
     // Handle new decorator proposal (stage 3)
     if (context && typeof context === 'object' && 'name' in context) {
-      const routes = Reflect.getMetadata('controller:routes', target.constructor) || [];
-      routes.push({
+      const items = Reflect.getMetadata('controller:items', target.constructor) || [];
+      items.push({
+        type: 'route',
         method,
         path: path || '',
         handler: target[context.name],
         propertyKey: context.name,
       });
-      Reflect.defineMetadata('controller:routes', routes, target.constructor);
+      Reflect.defineMetadata('controller:items', items, target.constructor);
       return target[context.name];
     }
 
     // Handle legacy decorator proposal
     const propertyKey = context;
     const descriptor = args[0];
-    const routes = Reflect.getMetadata('controller:routes', target.constructor) || [];
-    routes.push({
+    const items = Reflect.getMetadata('controller:items', target.constructor) || [];
+    items.push({
+      type: 'route',
       method,
       path: path || '',
       handler: descriptor?.value || target[propertyKey as string],
       propertyKey: String(propertyKey),
     });
-    Reflect.defineMetadata('controller:routes', routes, target.constructor);
+    Reflect.defineMetadata('controller:items', items, target.constructor);
     return descriptor?.value || target[propertyKey as string];
   };
 

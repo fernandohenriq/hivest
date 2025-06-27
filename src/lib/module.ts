@@ -99,27 +99,40 @@ export class AppModule {
       for (const controller of importedControllers) {
         const controllerInstance = container.resolve(controller);
         const controllerPath = Reflect.getMetadata('controller:path', controller) || '';
-        const routes: {
-          method: 'get' | 'post' | 'put' | 'patch' | 'delete';
-          path: string;
+        const items: {
+          type: 'route' | 'middleware';
+          method?: 'get' | 'post' | 'put' | 'patch' | 'delete';
+          path?: string;
           handler: (ctx: { req: any; res: any; next: Function }) => Promise<any>;
           propertyKey: string;
-        }[] = Reflect.getMetadata('controller:routes', controller) || [];
+        }[] = Reflect.getMetadata('controller:items', controller) || [];
 
-        for (const route of routes) {
-          const routePath = `${modulePath}${importedPath}${controllerPath}${route.path}`.replace(
-            '//',
-            '/',
-          );
-          console.log(`Registering route: ${route.method.toUpperCase()} ${routePath}`);
+        for (const item of items) {
+          if (item.type === 'route') {
+            const routePath = `${modulePath}${importedPath}${controllerPath}${item.path}`.replace(
+              '//',
+              '/',
+            );
+            console.log(`Registering route: ${item.method?.toUpperCase()} ${routePath}`);
 
-          this.app[route.method](routePath, async (req: any, res: any, next: Function) => {
-            try {
-              await controllerInstance[route.propertyKey]({ req, res });
-            } catch (error) {
-              next(error);
-            }
-          });
+            this.app[item.method!](routePath, async (req: any, res: any, next: Function) => {
+              try {
+                await controllerInstance[item.propertyKey]({ req, res });
+              } catch (error) {
+                next(error);
+              }
+            });
+          } else if (item.type === 'middleware') {
+            console.log(`Registering middleware: ${item.propertyKey}`);
+
+            this.app.use(async (req: any, res: any, next: Function) => {
+              try {
+                await controllerInstance[item.propertyKey]({ req, res, next });
+              } catch (error) {
+                next(error);
+              }
+            });
+          }
         }
       }
     }
@@ -128,24 +141,37 @@ export class AppModule {
     for (const controller of controllers) {
       const controllerInstance = container.resolve(controller);
       const controllerPath = Reflect.getMetadata('controller:path', controller) || '';
-      const routes: {
-        method: 'get' | 'post' | 'put' | 'patch' | 'delete';
-        path: string;
+      const items: {
+        type: 'route' | 'middleware';
+        method?: 'get' | 'post' | 'put' | 'patch' | 'delete';
+        path?: string;
         handler: (ctx: { req: any; res: any; next: Function }) => Promise<any>;
         propertyKey: string;
-      }[] = Reflect.getMetadata('controller:routes', controller) || [];
+      }[] = Reflect.getMetadata('controller:items', controller) || [];
 
-      for (const route of routes) {
-        const routePath = `${modulePath}${controllerPath}${route.path}`.replace('//', '/');
-        console.log(`Registering route: ${route.method.toUpperCase()} ${routePath}`);
+      for (const item of items) {
+        if (item.type === 'route') {
+          const routePath = `${modulePath}${controllerPath}${item.path}`.replace('//', '/');
+          console.log(`Registering route: ${item.method?.toUpperCase()} ${routePath}`);
 
-        this.app[route.method](routePath, async (req: any, res: any, next: Function) => {
-          try {
-            await controllerInstance[route.propertyKey]({ req, res });
-          } catch (error) {
-            next(error);
-          }
-        });
+          this.app[item.method!](routePath, async (req: any, res: any, next: Function) => {
+            try {
+              await controllerInstance[item.propertyKey]({ req, res });
+            } catch (error) {
+              next(error);
+            }
+          });
+        } else if (item.type === 'middleware') {
+          console.log(`Registering middleware: ${item.propertyKey}`);
+
+          this.app.use(async (req: any, res: any, next: Function) => {
+            try {
+              await controllerInstance[item.propertyKey]({ req, res, next });
+            } catch (error) {
+              next(error);
+            }
+          });
+        }
       }
     }
     this.bootstrapped = true;

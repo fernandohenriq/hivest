@@ -84,9 +84,8 @@ The basic building block. Each module can have:
 ### **1. Creating a Simple Module**
 
 ```typescript
-import { AppModule, Controller, HttpGet, Injectable } from 'hivest';
+import { AppModule, Controller, HttpGet } from 'hivest';
 
-@Injectable()
 @Controller({ path: '/users' })
 class UserController {
   @HttpGet('/')
@@ -105,7 +104,6 @@ const userModule = new AppModule({
 ### **2. Controllers with Middleware**
 
 ```typescript
-@Injectable()
 @Controller({ path: '/auth' })
 class AuthController {
   @HttpMiddleware()
@@ -204,9 +202,8 @@ app.listen(3000);
 ### **3. Create controller**
 
 ```typescript
-import { Controller, HttpGet, Injectable } from 'hivest';
+import { Controller, HttpGet } from 'hivest';
 
-@Injectable()
 @Controller({ path: '/users' })
 class UserController {
   @HttpGet('/')
@@ -272,12 +269,13 @@ The project includes complete examples in `src/exemple/` that demonstrate:
 
 ### **@Controller(options)**
 
-Defines base path for a controller:
+Defines base path for a controller and automatically makes it injectable:
 
 ```typescript
 @Controller({ path: '/auth' })
 class AuthController {
   // Routes will be prefixed with /auth
+  // Class is automatically injectable (no need for @Injectable())
 }
 ```
 

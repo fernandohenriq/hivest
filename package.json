@@ -1,6 +1,6 @@
 {
   "name": "hivest-js",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "A simple, fast and minimalist framework for Node.js that allows you to create modular applications with dependency injection using decorators",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

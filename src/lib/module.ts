@@ -280,11 +280,11 @@ export class AppModule {
     // Step 3: Register all providers (including inherited ones)
     this.registerAllProviders();
 
-    // Step 4: Process controllers from imported modules
-    this.processImportedModuleControllers(importedModuleInstances, modulePath);
-
-    // Step 5: Process local controllers
+    // Step 4: Process local controllers FIRST (middleware should be registered before routes)
     this.processControllers(controllers, modulePath);
+
+    // Step 5: Process controllers from imported modules (routes)
+    this.processImportedModuleControllers(importedModuleInstances, modulePath);
 
     this.bootstrapped = true;
     return this;

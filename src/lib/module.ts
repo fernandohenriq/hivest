@@ -2,6 +2,8 @@ import express from 'express';
 import 'reflect-metadata';
 import { container } from 'tsyringe';
 
+import { EventManager } from '../event-manager';
+
 export type AppProviderType =
   | { key: string; provide: any }
   | { key: string; useValue: any }
@@ -36,6 +38,7 @@ export class AppModule {
   private bootstrapped: boolean = false;
   private parentModule?: AppModule;
   private allProviders: AppProviderType[] = [];
+  private eventManager: EventManager;
 
   constructor(
     readonly options: {
@@ -46,6 +49,7 @@ export class AppModule {
     },
   ) {
     this.app.use(express.json());
+    this.eventManager = new EventManager();
   }
 
   /**
@@ -53,6 +57,13 @@ export class AppModule {
    */
   public getApp() {
     return this.app;
+  }
+
+  /**
+   * Get the event manager instance
+   */
+  public getEventManager(): EventManager {
+    return this.eventManager;
   }
 
   /**
@@ -169,6 +180,10 @@ export class AppModule {
       const controllerInstance = container.resolve(controller);
       const controllerPath = Reflect.getMetadata('controller:path', controller) || '';
       const items: ControllerItem[] = Reflect.getMetadata('controller:items', controller) || [];
+
+      // Register event listeners and emitters
+      this.eventManager.registerListeners(controllerInstance);
+      this.eventManager.registerEmitters(controllerInstance);
 
       // If this is a middleware controller, ensure all methods without decorators are treated as middleware
       if (this.isMiddlewareController(controller)) {

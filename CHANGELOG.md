@@ -5,11 +5,69 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.7.0] - 2024-12-19
+## [0.7.0] - 2025-07-09
 
-### Fixed
+### Added
+
+- **Event-Driven Architecture**: Complete event system implementation with decorators
+- **Event Manager Service**: Centralized event management with automatic registration
+- **Event Listener Decorator**: `@EventListener(eventName)` for automatic event handling
+- **Event Emitter Decorator**: `@EventEmitter(eventName)` for marking event-emitting methods
+- **Automatic Event Registration**: Controllers automatically register their event listeners and emitters
+- **Type-Safe Event System**: Full TypeScript support with generic event handlers
+- **Async Event Support**: Handles both synchronous and asynchronous event handlers
+- **Error Handling**: Graceful error handling for event handlers with logging
+- **Manual Event Control**: Support for manual event registration and emission
+- **Event Manager Access**: `getEventManager()` method for direct event manager access
+
+### Changed
+
+- **Enhanced AppModule**: Integrated event manager into the module system
+- **Controller Processing**: Controllers now automatically register event listeners and emitters
+- **Type Definitions**: Added event-related types to the existing type system
+- **Decorator System**: Extended decorator system to support event handling
+
+### Examples
+
+```typescript
+// Service that emits events
+@Controller({ path: '/users' })
+export class UserService {
+  constructor(@Inject('EventManager') private eventManager: EventManager) {}
+
+  @EventEmitter('user.created')
+  async createUser(userData: any) {
+    const user = { id: 1, ...userData };
+    await this.eventManager.emit('user.created', user);
+    return user;
+  }
+}
+
+// Service that listens to events
+@Controller({ path: '/notifications' })
+export class NotificationService {
+  @EventListener('user.created')
+  async onUserCreated(user: any) {
+    console.log('User created:', user);
+    await this.sendWelcomeEmail(user);
+  }
+}
+```
 
 ### Technical Details
+
+- Added `EventHandler<T>`, `EventListenerMetadata`, and `EventEmitterMetadata` types
+- Implemented `EventManager` class with event registration, emission, and management
+- Extended decorator system to support both legacy and new decorator proposals
+- Integrated event manager into `AppModule` constructor and controller processing
+- Added event manager access method for manual event control
+- Updated exports to include event system components
+
+### Migration
+
+- **No Breaking Changes**: Fully compatible with previous versions
+- **Optional Feature**: Event system is optional and can be adopted gradually
+- **Existing APIs Preserved**: All existing decorators and functionality remain unchanged
 
 ## [0.6.1] - 2024-12-19
 

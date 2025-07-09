@@ -118,3 +118,58 @@ export const HttpGet = createHttpMethodDecorator('get');
 export const HttpPut = createHttpMethodDecorator('put');
 export const HttpPatch = createHttpMethodDecorator('patch');
 export const HttpDelete = createHttpMethodDecorator('delete');
+
+// Event system decorators
+export function EventListener(eventName: string) {
+  return (target: any, context?: any, ...args: any[]): any => {
+    // Handle new decorator proposal (stage 3)
+    if (context && typeof context === 'object' && 'name' in context) {
+      const listeners = Reflect.getMetadata('event:listeners', target.constructor) || [];
+      listeners.push({
+        eventName,
+        handler: target[context.name],
+        propertyKey: context.name,
+      });
+      Reflect.defineMetadata('event:listeners', listeners, target.constructor);
+      return target[context.name];
+    }
+
+    // Handle legacy decorator proposal
+    const propertyKey = context;
+    const descriptor = args[0];
+    const listeners = Reflect.getMetadata('event:listeners', target.constructor) || [];
+    listeners.push({
+      eventName,
+      handler: descriptor?.value || target[propertyKey as string],
+      propertyKey: String(propertyKey),
+    });
+    Reflect.defineMetadata('event:listeners', listeners, target.constructor);
+    return descriptor?.value || target[propertyKey as string];
+  };
+}
+
+export function EventEmitter(eventName: string) {
+  return (target: any, context?: any, ...args: any[]): any => {
+    // Handle new decorator proposal (stage 3)
+    if (context && typeof context === 'object' && 'name' in context) {
+      const emitters = Reflect.getMetadata('event:emitters', target.constructor) || [];
+      emitters.push({
+        eventName,
+        propertyKey: context.name,
+      });
+      Reflect.defineMetadata('event:emitters', emitters, target.constructor);
+      return target[context.name];
+    }
+
+    // Handle legacy decorator proposal
+    const propertyKey = context;
+    const descriptor = args[0];
+    const emitters = Reflect.getMetadata('event:emitters', target.constructor) || [];
+    emitters.push({
+      eventName,
+      propertyKey: String(propertyKey),
+    });
+    Reflect.defineMetadata('event:emitters', emitters, target.constructor);
+    return descriptor?.value || target[propertyKey as string];
+  };
+}

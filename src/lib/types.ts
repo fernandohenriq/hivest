@@ -60,3 +60,17 @@ export interface HttpContext<Req = HttpRequest, Res = HttpResponse, Next = HttpN
   next: HttpNext<Next>;
   err?: HttpError<Err>;
 }
+
+// Event system types
+export type EventHandler<T = any> = (data: T) => void | Promise<void>;
+
+export interface EventListenerMetadata {
+  eventName: string;
+  handler: EventHandler;
+  propertyKey: string;
+}
+
+export interface EventEmitterMetadata {
+  eventName: string;
+  propertyKey: string;
+}

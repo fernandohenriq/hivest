@@ -50,6 +50,11 @@ export class AppModule {
   ) {
     this.app.use(express.json());
     this.eventManager = new EventManager();
+
+    // Initialize providers from options
+    if (options.providers) {
+      this.allProviders = [...options.providers];
+    }
   }
 
   /**
@@ -82,6 +87,15 @@ export class AppModule {
   }
 
   /**
+   * Share providers from parent module to this child module
+   * This allows child modules to access parent module providers
+   */
+  public shareParentProviders(parentProviders: AppProviderType[]): void {
+    // Add parent providers to this module's provider list
+    this.allProviders.push(...parentProviders);
+  }
+
+  /**
    * Register a provider in the dependency injection container
    * Supports class providers, value providers, and smart providers
    */
@@ -109,7 +123,7 @@ export class AppModule {
    * Register all providers in the dependency injection container
    * Uses the Strategy pattern to handle different provider types
    */
-  private registerAllProviders(): void {
+  public registerAllProviders(): void {
     const allProviders = this.getAllProviders();
     for (const provider of allProviders) {
       this.registerProvider(provider);
@@ -251,10 +265,17 @@ export class AppModule {
 
       // Set this as parent for the imported module (Composite pattern)
       moduleInstance.parentModule = this;
+
+      // Share providers from parent to child module
+      moduleInstance.shareParentProviders(this.allProviders);
+
       importedModuleInstances.push(moduleInstance);
 
-      // Bootstrap the imported module
-      await moduleInstance.bootstrap();
+      // Register the imported module's own providers in the DI container
+      moduleInstance.registerAllProviders();
+
+      // Bootstrap the imported module as a child (without re-registering providers)
+      await moduleInstance.bootstrapChild();
     }
 
     return importedModuleInstances;
@@ -284,21 +305,41 @@ export class AppModule {
   async bootstrap() {
     if (this.bootstrapped) return this;
 
-    const { path: modulePath = '/', providers = [], controllers = [], imports = [] } = this.options;
+    const { path: modulePath = '/', controllers = [], imports = [] } = this.options;
 
-    // Step 1: Register local providers
-    this.allProviders = [...providers];
+    // Step 1: Register all providers FIRST (including inherited ones) BEFORE any controllers are resolved
+    this.registerAllProviders();
 
     // Step 2: Bootstrap imported modules (Composite pattern)
     const importedModuleInstances = await this.bootstrapImportedModules(imports);
 
-    // Step 3: Register all providers (including inherited ones)
-    this.registerAllProviders();
-
-    // Step 4: Process local controllers FIRST (middleware should be registered before routes)
+    // Step 3: Process local controllers FIRST (middleware should be registered before routes)
     this.processControllers(controllers, modulePath);
 
-    // Step 5: Process controllers from imported modules (routes)
+    // Step 4: Process controllers from imported modules (routes)
+    this.processImportedModuleControllers(importedModuleInstances, modulePath);
+
+    this.bootstrapped = true;
+    return this;
+  }
+
+  /**
+   * Bootstrap child modules without re-registering providers
+   * This is used by child modules to avoid duplicate provider registration
+   */
+  async bootstrapChild() {
+    if (this.bootstrapped) return this;
+
+    const { path: modulePath = '/', controllers = [], imports = [] } = this.options;
+
+    // Skip provider registration for child modules since they're already registered by parent
+    // Step 1: Bootstrap imported modules (Composite pattern)
+    const importedModuleInstances = await this.bootstrapImportedModules(imports);
+
+    // Step 2: Process local controllers FIRST (middleware should be registered before routes)
+    this.processControllers(controllers, modulePath);
+
+    // Step 3: Process controllers from imported modules (routes)
     this.processImportedModuleControllers(importedModuleInstances, modulePath);
 
     this.bootstrapped = true;

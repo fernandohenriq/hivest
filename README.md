@@ -495,3 +495,8 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 ---
 
 **Hivest** - Transforming code into modules in a simple and efficient way! 🚀
+
+## 🆕 What's New in v0.7.1
+
+- **Provider Inheritance Fix**: Providers (services, repositories, etc.) registered in parent modules are now correctly available to all imported child modules and their controllers. This makes dependency injection work reliably across complex module hierarchies.
+- No breaking changes. If you had issues with DI in nested modules, just update to v0.7.1!

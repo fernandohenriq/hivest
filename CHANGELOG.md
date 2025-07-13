@@ -244,3 +244,14 @@ export class AuthMiddleware {
 - Provider inheritance between parent and child modules
 - Example modules and controllers
 - TypeScript support with type definitions
+
+## [0.7.1] - 2024-07-09
+
+### Fixed
+
+- **Provider Inheritance**: Providers defined in parent modules are now correctly available to all imported child modules and their controllers. This fixes issues where services or repositories registered in a parent module could not be injected into controllers of imported modules.
+- **Internal Improvements**: Improved the module bootstrap process to ensure all providers are registered before any controllers are resolved, preventing DI errors in complex module hierarchies.
+
+### Migration
+
+- **No Breaking Changes**: This is a bugfix and internal improvement release. No code changes are required for existing users, but provider injection in nested modules will now work as expected.

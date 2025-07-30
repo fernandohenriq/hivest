@@ -4,6 +4,21 @@ import { container } from 'tsyringe';
 
 import { EventManager } from '../event-manager';
 
+/**
+ * Normalize a path by removing duplicate slashes and ensuring proper format
+ * @param paths - Array of path segments to join and normalize
+ * @returns Normalized path string
+ */
+function normalizePath(...paths: string[]): string {
+  return (
+    paths
+      .filter((path) => path !== undefined && path !== null)
+      .join('/')
+      .replace(/\/+/g, '/') // Replace multiple consecutive slashes with single slash
+      .replace(/\/$/, '') || '/'
+  ); // Remove trailing slash, but keep root as '/'
+}
+
 export type AppProviderType =
   | { key: string; provide: any }
   | { key: string; useValue: any }
@@ -154,7 +169,7 @@ export class AppModule {
    */
   private registerRoute(item: ControllerItem, context: RouteContext): void {
     const { modulePath, controllerPath, controllerInstance, app } = context;
-    const routePath = `${modulePath}${controllerPath}${item.path}`.replace('//', '/');
+    const routePath = normalizePath(modulePath, controllerPath, item.path || '');
 
     console.log(`Registering route: ${item.method?.toUpperCase()} ${routePath}`);
 
@@ -292,7 +307,7 @@ export class AppModule {
     for (const moduleInstance of importedModuleInstances) {
       const importedControllers = moduleInstance.options.controllers || [];
       const importedPath = moduleInstance.options.path || '/';
-      const fullModulePath = `${modulePath}${importedPath}`;
+      const fullModulePath = normalizePath(modulePath, importedPath);
 
       this.processControllers(importedControllers, fullModulePath);
     }

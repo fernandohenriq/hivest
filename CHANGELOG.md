@@ -255,3 +255,21 @@ export class AuthMiddleware {
 ### Migration
 
 - **No Breaking Changes**: This is a bugfix and internal improvement release. No code changes are required for existing users, but provider injection in nested modules will now work as expected.
+
+## [0.7.2] - 2024-07-09
+
+### Fixed
+
+- **Path Normalization**: Fixed route registration to properly handle path concatenation and eliminate duplicate slashes. Routes like `/auth//login` and `/users//:id` are now correctly normalized to `/auth/login` and `/users/:id`.
+- **Module Path Handling**: Improved path construction for imported modules to ensure clean, normalized URLs across complex module hierarchies.
+
+### Technical Details
+
+- Added `normalizePath()` utility function that joins path segments and removes duplicate slashes
+- Updated `registerRoute()` method to use proper path normalization
+- Updated `processImportedModuleControllers()` method for consistent path handling
+- Uses regex `/\/+/g` to replace multiple consecutive slashes with single slash
+
+### Migration
+
+- **No Breaking Changes**: This is a bugfix release. No code changes are required for existing users, but route URLs will now be properly normalized without duplicate slashes.

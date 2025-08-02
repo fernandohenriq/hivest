@@ -5,6 +5,54 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.3] - 2025-08-02
+
+### Fixed
+
+- **Type Safety Improvements**: Enhanced generic type parameters for `HttpRequest`, `HttpResponse`, and `HttpError` types to default to object types, improving type safety and flexibility in handling request and response data
+- **Consistent Type Definitions**: Ensured consistency across HTTP type definitions to better accommodate various data structures and reduce type casting requirements
+- **Better IntelliSense Support**: Improved TypeScript IntelliSense and autocomplete for HTTP context objects
+
+### Technical Details
+
+- Updated `HttpRequest<T = { [key: string]: any }>` to provide better default typing
+- Updated `HttpResponse<T = { [key: string]: any }>` for consistent response handling
+- Updated `HttpError<T = { [key: string]: any }>` for flexible error data structures
+- All HTTP types now provide better type inference and safety while maintaining backward compatibility
+
+### Migration
+
+- **No Breaking Changes**: This is a type safety improvement release. No code changes are required for existing users, but TypeScript will provide better type checking and IntelliSense support.
+
+## [0.7.2] - 2025-07-30
+
+### Fixed
+
+- **Path Normalization**: Fixed route registration to properly handle path concatenation and eliminate duplicate slashes. Routes like `/auth//login` and `/users//:id` are now correctly normalized to `/auth/login` and `/users/:id`.
+- **Module Path Handling**: Improved path construction for imported modules to ensure clean, normalized URLs across complex module hierarchies.
+
+### Technical Details
+
+- Added `normalizePath()` utility function that joins path segments and removes duplicate slashes
+- Updated `registerRoute()` method to use proper path normalization
+- Updated `processImportedModuleControllers()` method for consistent path handling
+- Uses regex `/\/+/g` to replace multiple consecutive slashes with single slash
+
+### Migration
+
+- **No Breaking Changes**: This is a bugfix release. No code changes are required for existing users, but route URLs will now be properly normalized without duplicate slashes.
+
+## [0.7.1] - 2025-07-13
+
+### Fixed
+
+- **Provider Inheritance**: Providers defined in parent modules are now correctly available to all imported child modules and their controllers. This fixes issues where services or repositories registered in a parent module could not be injected into controllers of imported modules.
+- **Internal Improvements**: Improved the module bootstrap process to ensure all providers are registered before any controllers are resolved, preventing DI errors in complex module hierarchies.
+
+### Migration
+
+- **No Breaking Changes**: This is a bugfix and internal improvement release. No code changes are required for existing users, but provider injection in nested modules will now work as expected.
+
 ## [0.7.0] - 2025-07-09
 
 ### Added
@@ -69,7 +117,7 @@ export class NotificationService {
 - **Optional Feature**: Event system is optional and can be adopted gradually
 - **Existing APIs Preserved**: All existing decorators and functionality remain unchanged
 
-## [0.6.1] - 2024-12-19
+## [0.6.1] - 2025-07-09
 
 ### Fixed
 
@@ -85,7 +133,7 @@ export class NotificationService {
 - Imported module controllers are processed second: `this.processImportedModuleControllers(importedModuleInstances, modulePath)`
 - This ensures proper middleware-to-route execution order
 
-## [0.6.0] - 2024-12-19
+## [0.6.0] - 2025-06-27
 
 ### Added
 
@@ -144,7 +192,7 @@ export class AuthMiddleware {
 - **Existing APIs Preserved**: All existing decorators and functionality remain unchanged
 - **Optional Upgrade**: New middleware system is optional and can be adopted gradually
 
-## [0.5.0] - 2024-12-19
+## [0.5.0] - 2025-06-27
 
 ### Changed
 
@@ -159,7 +207,7 @@ export class AuthMiddleware {
 - **Before**: `@Injectable() @Controller({ path: '/users' }) class UserController`
 - **After**: `@Controller({ path: '/users' }) class UserController`
 
-## [0.4.0] - 2024-12-19
+## [0.4.0] - 2025-06-27
 
 ### Added
 
@@ -192,7 +240,7 @@ export class AuthMiddleware {
 - **Optimized Processing**: Improved efficiency in controller and provider processing
 - **Better Memory Usage**: More efficient module composition and inheritance
 
-## [0.3.0] - 2024-12-19
+## [0.3.0] - 2025-06-25
 
 ### Added
 
@@ -211,14 +259,14 @@ export class AuthMiddleware {
 - Improved type definitions for better IntelliSense and development experience
 - Enhanced error handling with proper TypeScript error types
 
-## [0.2.0] - 2024-12-19
+## [0.2.0] - 2025-06-25
 
 ### Added
 
 - Added `getApp()` method to AppModule class for direct access to Express application instance
 - This allows developers to access the underlying Express app for custom middleware or advanced configurations
 
-## [0.1.1] - 2024-06-19
+## [0.1.1] - 2025-06-19
 
 ### Fixed
 
@@ -232,7 +280,7 @@ export class AuthMiddleware {
 - Updated decorator implementation to be compatible with TypeScript 5.x
 - Enhanced error handling in decorator functions
 
-## [0.1.0] - 2024-06-19
+## [0.1.0] - 2025-06-19
 
 ### Added
 
@@ -244,32 +292,3 @@ export class AuthMiddleware {
 - Provider inheritance between parent and child modules
 - Example modules and controllers
 - TypeScript support with type definitions
-
-## [0.7.1] - 2024-07-09
-
-### Fixed
-
-- **Provider Inheritance**: Providers defined in parent modules are now correctly available to all imported child modules and their controllers. This fixes issues where services or repositories registered in a parent module could not be injected into controllers of imported modules.
-- **Internal Improvements**: Improved the module bootstrap process to ensure all providers are registered before any controllers are resolved, preventing DI errors in complex module hierarchies.
-
-### Migration
-
-- **No Breaking Changes**: This is a bugfix and internal improvement release. No code changes are required for existing users, but provider injection in nested modules will now work as expected.
-
-## [0.7.2] - 2024-07-09
-
-### Fixed
-
-- **Path Normalization**: Fixed route registration to properly handle path concatenation and eliminate duplicate slashes. Routes like `/auth//login` and `/users//:id` are now correctly normalized to `/auth/login` and `/users/:id`.
-- **Module Path Handling**: Improved path construction for imported modules to ensure clean, normalized URLs across complex module hierarchies.
-
-### Technical Details
-
-- Added `normalizePath()` utility function that joins path segments and removes duplicate slashes
-- Updated `registerRoute()` method to use proper path normalization
-- Updated `processImportedModuleControllers()` method for consistent path handling
-- Uses regex `/\/+/g` to replace multiple consecutive slashes with single slash
-
-### Migration
-
-- **No Breaking Changes**: This is a bugfix release. No code changes are required for existing users, but route URLs will now be properly normalized without duplicate slashes.

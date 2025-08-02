@@ -1,4 +1,4 @@
-export type HttpRequest<T = unknown> = T & {
+export type HttpRequest<T = { [key: string]: any }> = T & {
   body: T;
   query: Record<string, string>;
   params: Record<string, string>;
@@ -38,7 +38,7 @@ export type HttpRequest<T = unknown> = T & {
   [key: string]: any;
 };
 
-export type HttpResponse<T = unknown> = T & {
+export type HttpResponse<T = { [key: string]: any }> = T & {
   status: (code: number) => HttpResponse<T>;
   headers: (headers: { [key: string]: string | undefined }) => HttpResponse<T>;
   send: (body: any) => HttpResponse<T>;
@@ -48,7 +48,7 @@ export type HttpResponse<T = unknown> = T & {
 
 export type HttpNext<T = (err?: any) => void> = T;
 
-export type HttpError<T = unknown> = T & {
+export type HttpError<T = { [key: string]: any }> = T & {
   status?: number;
   message?: string;
   [key: string]: any;

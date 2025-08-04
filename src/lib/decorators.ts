@@ -173,3 +173,34 @@ export function EventEmitter(eventName: string) {
     return descriptor?.value || target[propertyKey as string];
   };
 }
+
+/**
+ * Decorator para marcar uma classe como middleware de error handler
+ * O AppModule detecta automaticamente e registra como error handler
+ */
+export function ErrorHandlerMiddleware() {
+  return (target: new (...args: any[]) => any) => {
+    // Apply Injectable decorator first
+    injectable()(target);
+
+    // Mark this class as an error handler middleware
+    Reflect.defineMetadata('controller:isErrorHandler', true, target);
+
+    // Get all method names from the prototype
+    const methodNames = Object.getOwnPropertyNames(target.prototype).filter(
+      (name) => name !== 'constructor' && typeof target.prototype[name] === 'function',
+    );
+
+    // Create error handler items for all methods
+    const errorHandlerItems = methodNames.map((methodName) => ({
+      type: 'errorHandler',
+      handler: target.prototype[methodName],
+      propertyKey: methodName,
+    }));
+
+    // Store error handler items in metadata
+    Reflect.defineMetadata('controller:errorHandlers', errorHandlerItems, target);
+
+    return target;
+  };
+}

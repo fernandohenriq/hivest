@@ -28,10 +28,10 @@ export type AppControllerType = new (...args: any[]) => { [key: string]: any };
 
 // Types for controller items metadata
 type ControllerItem = {
-  type: 'route' | 'middleware';
+  type: 'route' | 'middleware' | 'errorHandler';
   method?: 'get' | 'post' | 'put' | 'patch' | 'delete';
   path?: string;
-  handler: (ctx: { req: any; res: any; next: Function }) => Promise<any>;
+  handler: (ctx: { req: any; res: any; next: Function; err?: any }) => Promise<any>;
   propertyKey: string;
 };
 
@@ -153,7 +153,14 @@ export class AppModule {
   }
 
   /**
-   * Process and register a single controller item (route or middleware)
+   * Check if a controller is marked as error handler middleware
+   */
+  private isErrorHandlerController(controller: AppControllerType): boolean {
+    return Reflect.getMetadata('controller:isErrorHandler', controller) === true;
+  }
+
+  /**
+   * Process and register a single controller item (route, middleware, or error handler)
    * Uses the Strategy pattern to handle different item types
    */
   private processControllerItem(item: ControllerItem, context: RouteContext): void {
@@ -161,6 +168,8 @@ export class AppModule {
       this.registerRoute(item, context);
     } else if (item.type === 'middleware') {
       this.registerMiddleware(item, context);
+    } else if (item.type === 'errorHandler') {
+      this.registerErrorHandler(item, context);
     }
   }
 
@@ -200,9 +209,26 @@ export class AppModule {
   }
 
   /**
+   * Register an error handler in the Express application
+   */
+  private registerErrorHandler(item: ControllerItem, context: RouteContext): void {
+    const { controllerInstance, app } = context;
+
+    console.log(`Registering error handler: ${item.propertyKey}`);
+
+    app.use(async (err: any, req: any, res: any, next: Function) => {
+      try {
+        await controllerInstance[item.propertyKey]({ req, res, next, err });
+      } catch (error) {
+        next(error);
+      }
+    });
+  }
+
+  /**
    * Process and register all controllers from a module
    * Uses the Template Method pattern to process controllers consistently
-   * Now automatically detects and processes middleware classes
+   * Now automatically detects and processes middleware classes and error handlers
    */
   private processControllers(controllers: AppControllerType[], modulePath: string): void {
     for (const controller of controllers) {
@@ -217,6 +243,13 @@ export class AppModule {
       // If this is a middleware controller, ensure all methods without decorators are treated as middleware
       if (this.isMiddlewareController(controller)) {
         this.ensureMiddlewareMethods(controller, items);
+      }
+
+      // If this is an error handler controller, get error handler items
+      if (this.isErrorHandlerController(controller)) {
+        const errorHandlerItems: ControllerItem[] =
+          Reflect.getMetadata('controller:errorHandlers', controller) || [];
+        items.push(...errorHandlerItems);
       }
 
       const context: RouteContext = {

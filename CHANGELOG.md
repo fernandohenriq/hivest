@@ -5,6 +5,85 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2025-08-04
+
+### Added
+
+- **Error Handler Middleware System**: Complete error handling system with automatic error capture and standardized responses
+- **ErrorHandlerMiddleware Decorator**: `@ErrorHandlerMiddleware()` decorator for marking classes as error handlers
+- **Automatic Error Detection**: AppModule automatically detects and registers error handler middlewares
+- **Standardized Error Responses**: Consistent JSON error responses with status, message, timestamp, and metadata
+- **Express Error Middleware Integration**: Seamless integration with Express error middleware pattern `(err, req, res, next)`
+- **Type-Safe Error Handling**: Full TypeScript support with `HttpContext` including optional `err` parameter
+- **Automatic Error Logging**: Built-in error logging with request context information
+- **Flexible Error Status Codes**: Support for custom error status codes and messages
+- **Development Mode Support**: Optional stack trace inclusion in development environment
+
+### Changed
+
+- **Enhanced AppModule**: Integrated error handler detection and registration
+- **Controller Processing**: Extended to support error handler controllers alongside routes and middleware
+- **Type Definitions**: Added `errorHandler` type to controller items and enhanced `HttpContext` with error support
+- **Decorator System**: Extended decorator system to support error handler registration
+
+### Examples
+
+```typescript
+// Error handler middleware
+@ErrorHandlerMiddleware()
+export class ErrorMiddleware {
+  async handleError({ req, res, err }: HttpContext) {
+    if (!err) return;
+    
+    console.error(`[ERROR] ${req.method} ${req.path}:`, err);
+    
+    const status = err.status || err.statusCode || 500;
+    const message = err.message || 'Internal Server Error';
+    
+    return res.status(status).json({
+      error: {
+        message,
+        status,
+        timestamp: new Date().toISOString(),
+        path: req.path,
+        method: req.method
+      }
+    });
+  }
+}
+
+// Controller with error throwing
+@HttpGet('/:id')
+async get({ req, res }: { req: any; res: any }) {
+  const user = await this.userService.getUser(req.params.id);
+  
+  if (!user) {
+    const error: any = new Error('User not found');
+    error.status = 404;
+    throw error; // Capturado automaticamente pelo ErrorMiddleware
+  }
+  
+  return res.status(200).json(user);
+}
+```
+
+### Technical Details
+
+- Added `ErrorHandlerMiddleware()` decorator for automatic error handler registration
+- Extended `ControllerItem` type to include `errorHandler` type
+- Added `isErrorHandlerController()` method for error handler detection
+- Implemented `registerErrorHandler()` method for Express error middleware registration
+- Enhanced `processControllers()` to handle error handler items
+- Updated `HttpContext` type to include optional `err` parameter
+- Integrated error handler processing into module bootstrap process
+
+### Migration
+
+- **No Breaking Changes**: Fully compatible with previous versions
+- **Optional Feature**: Error handler system is optional and can be adopted gradually
+- **Existing APIs Preserved**: All existing decorators and functionality remain unchanged
+- **Automatic Integration**: Error handlers are automatically detected and registered when using `@ErrorHandlerMiddleware()`
+
 ## [0.7.3] - 2025-08-02
 
 ### Fixed

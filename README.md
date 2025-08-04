@@ -40,6 +40,7 @@ Hivest is a framework that simplifies the creation of modular Node.js applicatio
 - Easy to extend
 - Middleware support
 - Automatic middleware classes
+- Error handler middleware system
 
 ### 🏗️ **Architecture**
 
@@ -48,6 +49,7 @@ Hivest is a framework that simplifies the creation of modular Node.js applicatio
 - Well-documented codebase
 - Type-safe development
 - Automatic middleware detection
+- Centralized error handling
 
 ## 🎯 **Installation**
 
@@ -72,6 +74,8 @@ The basic building block. Each module can have:
 - `@Controller()`: Defines base path for a controller
 - `@HttpPost()`, `@HttpGet()`, etc.: Defines HTTP routes
 - `@HttpMiddleware()`: Defines middleware methods
+- `@Middleware()`: Defines middleware classes (all methods become middleware)
+- `@ErrorHandlerMiddleware()`: Defines error handler classes
 - `@Injectable()`: Marks class for dependency injection
 - `@Inject()`: Inject specific dependencies
 
@@ -172,7 +176,57 @@ const app = new AppModule({
 });
 ```
 
-### **4. Modules with Inheritance**
+### **4. Error Handler Middleware**
+
+```typescript
+// Global error handler middleware
+@ErrorHandlerMiddleware()
+export class ErrorMiddleware {
+  async handleError({ req, res, err }: HttpContext) {
+    if (!err) return;
+
+    console.error(`[ERROR] ${req.method} ${req.path}:`, err);
+
+    const status = err.status || err.statusCode || 500;
+    const message = err.message || 'Internal Server Error';
+
+    return res.status(status).json({
+      error: {
+        message,
+        status,
+        timestamp: new Date().toISOString(),
+        path: req.path,
+        method: req.method,
+      },
+    });
+  }
+}
+
+// Controller with error throwing
+@Controller({ path: '/users' })
+class UserController {
+  @HttpGet('/:id')
+  async getUser({ req, res }) {
+    const user = await this.userService.getUser(req.params.id);
+
+    if (!user) {
+      const error: any = new Error('User not found');
+      error.status = 404;
+      throw error; // Capturado automaticamente pelo ErrorMiddleware
+    }
+
+    return res.status(200).json(user);
+  }
+}
+
+// Register in module
+const app = new AppModule({
+  path: '/api',
+  controllers: [ErrorMiddleware, UserController], // Error handler é detectado automaticamente
+});
+```
+
+### **5. Modules with Inheritance**
 
 ```typescript
 // Parent module with providers
@@ -381,6 +435,36 @@ export class AuthMiddleware {
 ```
 
 **Nota**: Em classes com `@Middleware`, métodos com decorators HTTP (como `@HttpGet`, `@HttpPost`, etc.) se tornam rotas, enquanto métodos sem decorators se tornam middleware automaticamente.
+
+### **@ErrorHandlerMiddleware()**
+
+Defines an error handler class where all methods are automatically registered as Express error middleware:
+
+```typescript
+@ErrorHandlerMiddleware()
+export class ErrorMiddleware {
+  async handleError({ req, res, err }: HttpContext) {
+    if (!err) return;
+
+    console.error(`[ERROR] ${req.method} ${req.path}:`, err);
+
+    const status = err.status || err.statusCode || 500;
+    const message = err.message || 'Internal Server Error';
+
+    return res.status(status).json({
+      error: {
+        message,
+        status,
+        timestamp: new Date().toISOString(),
+        path: req.path,
+        method: req.method,
+      },
+    });
+  }
+}
+```
+
+**Nota**: Classes com `@ErrorHandlerMiddleware()` são automaticamente detectadas pelo AppModule e registradas como middleware de erro no Express. Todos os métodos da classe se tornam error handlers.
 
 ### **@Injectable()**
 
